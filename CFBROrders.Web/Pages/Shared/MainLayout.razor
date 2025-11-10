@@ -1,0 +1,65 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider _authenticationStateProvider
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>CFBR Orders</PageTitle>
+
+<div class="page">
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary bg-gradient border-bottom box-shadow mb-3">
+            <div class="container-fluid d-md-inline-flex align-items-center">
+                <NavLink class="navbar-brand" href="/">
+                    <img class="img-fluid" width="40" height="40" alt="Rainbow Logo"
+                         src="images/logo-rainbow.png" />
+                </NavLink>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbar-collapse-element"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse justify-content-end" id="navbar-collapse-element">
+                    <ul class="navbar-nav d-sm-inline-flex align-items-center">
+
+                        <li class="nav-item me-4">
+                            <NavLink class="nav-link text-white" href="/">Login</NavLink>
+                        </li>
+
+                        <li class="nav-item me-4">
+                            <NavLink class="nav-link text-white" href="/admin/AddOrders">Add Orders</NavLink>
+                        </li>
+
+                        <li class="nav-item me-4">
+                            <NavLink class="nav-link text-white" href="/admin/Admin">Admin</NavLink>
+                        </li>
+
+                        <li class="nav-item me-4">
+                            <button class="nav-link btn btn-link text-white">Logout</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="content p-md-4 p-2">
+            <CascadingValue Value="@userInformation">
+                @Body
+            </CascadingValue>
+        </article>
+    </main>
+</div>
+
+@code {
+    private ClaimsPrincipal userInformation = new ClaimsPrincipal();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        userInformation = authState.User;
+    }
+}

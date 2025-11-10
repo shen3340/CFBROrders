@@ -1,0 +1,152 @@
+﻿@page "/admin/AddOrders"
+@layout MainLayout
+@using System.Text.Json
+@inject ILogger<AddOrders> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h2>Add Orders</h2>
+<hr />
+
+<p>
+    Please add your orders. This amount should at most add up to your team star power, which is <strong>@starPower</strong>.
+</p>
+
+<h3>Defendable Territories</h3>
+<RadzenDataGrid Data="@territoryOwnershipWithNeighborsList"
+                TItem="TerritoryOwnershipWithNeighbor"
+                class="w-100"
+                ShowPagingSummary="true"
+                AllowFiltering="true"
+                AllowSorting="true"
+                AllowPaging="true"
+                PageSize="@pageSize"
+                PageSizeOptions="@pagingOptions">
+    <Columns>
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory" />
+
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Neighbors and Owners">
+            <Template Context="territory">
+                @{
+                    var opposingNeighbors = territory.NeighborList
+                    .Where(n => n.owner != team)
+                    .ToList();
+                }
+
+                @if (opposingNeighbors.Any())
+                {
+                    <ul>
+                        @foreach (var neighbor in opposingNeighbors)
+                        {
+                            <li>@neighbor.name (@neighbor.owner)</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <em>No opposing neighbors</em>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Priority">
+            <Template Context="territory">
+                <RadzenDropDown @bind-Value="territory.Priority"
+                                Data="@priorityOptions"
+                                Style="width:100%"
+                                AllowClear="false" />
+            </Template>
+        </RadzenDataGridColumn>
+
+
+        <RadzenDataGridColumn Title="Star Power">
+            <Template>0</Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+<br />
+
+<h3>Attackable Territories</h3>
+<RadzenDataGrid Data="@attackableTerritories" TItem="(string Name, string Owner)"
+                ShowPagingSummary="true" AllowFiltering="true"
+                AllowSorting="true" AllowPaging="true" PageSize="@pageSize" PageSizeOptions="@pagingOptions">
+    <Columns>
+        <RadzenDataGridColumn TItem="(string Name, string Owner)" Title="Territory">
+            <Template Context="n">@n.Name</Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="(string Name, string Owner)" Title="Owner">
+            <Template Context="n">@n.Owner</Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Priority">
+            <Template Context="territory">
+                <RadzenDropDown @bind-Value="territory.Priority"
+                                Data="@priorityOptions"
+                                Style="width:100%"
+                                AllowClear="false" />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn Title="Star Power">
+            <Template>0</Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    private List<TerritoryOwnershipWithNeighbor>? territoryOwnershipWithNeighborsList;
+    private List<(string Name, string Owner)> attackableTerritories = new();
+
+    int pageSize = 10;
+    int[] pagingOptions = { 5, 10, 20, 50 };
+    private List<int> priorityOptions = Enumerable.Range(1, 10).ToList();
+
+    private string team = "February";
+    private int season = 5;
+    private int pastDay = 27;
+    private int currentDay;
+    private double starPower;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            currentDay = pastDay + 1;
+            starPower = TeamsService.GetTeamStarPowerForTurn(team, season, pastDay);
+
+            Logger.LogInformation("Fetching territory ownership for team {Team}", team);
+
+            territoryOwnershipWithNeighborsList =
+                TerritoriesService.GetTerritoryOwnershipWithNeighbors(season, currentDay, team);
+
+            attackableTerritories = TerritoriesService.GetAttackableTerritories(team, season, currentDay);
+
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading territory ownership data");
+            territoryOwnershipWithNeighborsList = new List<TerritoryOwnershipWithNeighbor>();
+        }
+    }
+
+    private string GetNeighborDisplay(string neighborsJson)
+    {
+        if (string.IsNullOrWhiteSpace(neighborsJson)) return string.Empty;
+
+        try
+        {
+            var neighbors = JsonSerializer.Deserialize<List<TerritoryOwnershipWithNeighbor.Neighbor>>(neighborsJson);
+            if (neighbors == null || !neighbors.Any()) return string.Empty;
+
+            return string.Join(", ", neighbors.Select(n => $"{n.name} ({n.owner})"));
+        }
+        catch
+        {
+            return "Invalid data";
+        }
+    }
+}

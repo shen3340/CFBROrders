@@ -1,0 +1,13 @@
+﻿@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var returnUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+            await JS.InvokeVoidAsync("eval", $"window.location.href = '/login?returnUrl={Uri.EscapeDataString("/" + returnUrl)}'");
+        }
+    }
+}

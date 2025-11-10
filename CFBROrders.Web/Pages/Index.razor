@@ -1,0 +1,90 @@
+﻿@page "/"
+@inject ILogger<Index> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h2>Users Table</h2>
+
+@if (usersList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (usersList.Count == 0)
+{
+    <p>No users found.</p>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead class="table-primary">
+            <tr>
+                <th>Id</th>
+                <th>UserName</th>
+                <th>Platform</th>
+                <th>Join Date</th>
+                <th>Current Team</th>
+                <th>Auth Key</th>
+                <th>Overall</th>
+                <th>Turns</th>
+                <th>Game Turns</th>
+                <th>Mvp</th>
+                <th>Streak</th>
+                <th>Awards</th>
+                <th>Role Id</th>
+                <th>Playing For</th>
+                <th>Past Teams</th>
+                <th>Awards Bak</th>
+                <th>Discord Id</th>
+                <th>Is Alt</th>
+                <th>Must Captcha</th>
+            </tr>
+        </thead>
+        @* <tbody>
+            @foreach (var user in usersList)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.Uname</td>
+                    <td>@user.Platform</td>
+                    <td>@user.JoinDate</td>
+                    <td>@user.CurrentTeam</td>
+                    <td>@user.AuthKey</td>
+                    <td>@user.Overall</td>
+                    <td>@user.Turns</td>
+                    <td>@user.GameTurns</td>
+                    <td>@user.Mvps</td>
+                    <td>@user.Streak</td>
+                    <td>@user.Awards</td>
+                    <td>@user.RoleId</td>
+                    <td>@user.PlayingFor</td>
+                    <td>@(user.PastTeams != null ? string.Join(",", user.PastTeams) : "")</td>
+                    <td>@user.AwardsBak</td>
+                    <td>@user.DiscordId</td>
+                    <td>@user.IsAlt</td>
+                    <td>@user.MustCaptcha</td>
+                </tr>
+            }
+        </tbody> *@
+    </table>
+}
+
+@code {
+    private List<User>? usersList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            usersList = UsersService.GetAllUsers(userId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load users");
+            usersList = new List<User>();
+        }
+    }
+}
