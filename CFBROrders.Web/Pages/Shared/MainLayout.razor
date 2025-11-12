@@ -1,9 +1,4 @@
-﻿@using CFBROrders.Web.Areas.Identity.Data
-@using Microsoft.AspNetCore.Identity
-@inherits LayoutComponentBase
-@inject AuthenticationStateProvider _authenticationStateProvider
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
+﻿@inherits LayoutComponentBase
 
 <PageTitle>CFBR Orders</PageTitle>
 
@@ -24,22 +19,23 @@
 
                 <div class="collapse navbar-collapse justify-content-end" id="navbar-collapse-element">
                     <ul class="navbar-nav d-sm-inline-flex align-items-center">
-                        @if (SignInManager.IsSignedIn(userInformation))
-                        {
-                            <li class="nav-item me-4">
-                                <NavLink class="nav-link text-white" href="/admin/AddOrders">Add Orders</NavLink>
-                            </li>
+                        <AuthorizeView>
+                            <Authorized>
+                                <li class="nav-item me-4">
+                                    <NavLink class="nav-link text-white" href="/admin/AddOrders">Add Orders</NavLink>
+                                </li>
 
-                            <li class="nav-item me-4">
-                                <NavLink class="nav-link text-white" href="/admin/Admin">Admin</NavLink>
-                            </li>
-                            <li class="nav-item me-4">
-                                <button class="nav-link btn btn-link text-white">Logout</button>
-                            </li>
-                        }
-                        <li class="nav-item me-4">
-                            <NavLink class="nav-link text-white" href="/">Login</NavLink>
-                        </li>        
+                                <li class="nav-item me-4">
+                                    <NavLink class="nav-link text-white" href="/admin/Admin">Admin</NavLink>
+                                </li>
+
+                                <li class="nav-item me-4">
+                                    <form method="post" action="/logout">
+                                        <button class="nav-link btn btn-link text-white" type="submit">Logout</button>
+                                    </form>
+                                </li>
+                            </Authorized>
+                        </AuthorizeView>
                     </ul>
                 </div>
             </div>
@@ -48,19 +44,9 @@
 
     <main>
         <article class="content p-md-4 p-2">
-            <CascadingValue Value="@userInformation">
+            <CascadingAuthenticationState>
                 @Body
-            </CascadingValue>
+            </CascadingAuthenticationState>
         </article>
     </main>
 </div>
-
-@code {
-    private ClaimsPrincipal userInformation = new ClaimsPrincipal();
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        userInformation = authState.User;
-    }
-}

@@ -125,19 +125,12 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddRadzenComponents();
 builder.Services.AddServerSideBlazor();
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireAdmin",
-        policy => policy.RequireRole("Admin"));
-});
-
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/login";
     options.AccessDeniedPath = "/access-denied";
     options.ExpireTimeSpan = TimeSpan.FromHours(1);
 });
-
 
 builder.Services.AddSession(options =>
 {
@@ -159,6 +152,8 @@ builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, Applica
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<ITerritoriesService, TerritoriesService>();
 builder.Services.AddScoped<ITeamsService, TeamsService>();
+
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
