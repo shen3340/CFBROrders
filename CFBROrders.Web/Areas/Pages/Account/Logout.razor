@@ -1,0 +1,11 @@
+﻿@page "/logout"
+@inject NavigationManager NavigationManager
+
+<h3>Logging out...</h3>
+
+@code {
+    protected override void OnInitialized()
+    {
+        NavigationManager.NavigateTo("/logout", forceLoad: true);
+    }
+}

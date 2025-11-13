@@ -1,16 +1,21 @@
 ﻿<#@ template language="C#" debug="true" hostspecific="true" #>
 <#@ output extension=".cs" #>
+<#@ assembly name="Npgsql" #>
+<#@ assembly name="C:\Users\shen3\.nuget\packages\system.componentmodel.annotations\5.0.0\lib\netstandard2.0\System.ComponentModel.Annotations.dll" #>
+<#@ assembly name="System.Configuration" #>
 <#@ assembly name="System.Core" #>
 <#@ assembly name="System.Data" #>
-<#@ assembly name="System.Configuration" #>
-<#@ assembly name="Npgsql" #>
+<#@ import namespace="Npgsql" #>
 <#@ import namespace="System" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.ComponentModel.DataAnnotations.Schema" #>
+<#@ import namespace="System.Configuration" #>
 <#@ import namespace="System.Data" #>
 <#@ import namespace="System.IO" #>
-<#@ import namespace="System.Configuration" #>
-<#@ import namespace="Npgsql" #>
-<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
+
+using System.ComponentModel.DataAnnotations.Schema;
 
 <#
 string configPath = Host.ResolvePath(@"..\App.config");
@@ -52,72 +57,91 @@ using (var cmd = new NpgsqlCommand(@"
 namespace CFBROrders.SDK.Models
 {
 <#
-    foreach (var table in tables)
-    {
-        var cols = new List<(string name, string type, bool nullable)>();
+foreach (var table in tables)
+{
+    var cols = new List<(string name, string type, bool nullable)>();
 
-        using (var colCmd = new NpgsqlCommand($@"
-            SELECT column_name, data_type, is_nullable
-            FROM information_schema.columns
-            WHERE table_name = '{table}'", conn))
+    using (var colCmd = new NpgsqlCommand($@"
+        SELECT column_name, data_type, is_nullable
+        FROM information_schema.columns
+        WHERE table_name = '{table}'", conn))
+    {
+        using (var colReader = colCmd.ExecuteReader())
         {
-            using (var colReader = colCmd.ExecuteReader())
+            while (colReader.Read())
             {
-                while (colReader.Read())
-                {
-                    string name = colReader.GetString(0);
-                    string type = MapPostgresType(colReader.GetString(1));
-                    bool nullable = colReader.GetString(2) == "YES";
-                    cols.Add((name, type, nullable));
-                }
+                string name = colReader.GetString(0);
+                string type = MapPostgresType(colReader.GetString(1));
+                bool nullable = colReader.GetString(2) == "YES";
+                cols.Add((name, type, nullable));
             }
         }
+    }
 #>
+    [Table("<#= table #>")]
     public partial class <#= PascalCase(table) #>
     {
 <#
-        foreach (var c in cols)
-        {
+    foreach (var c in cols)
+    {
 #>
-        public <#= c.type #><#= (c.nullable && c.type != "string" ? "?" : "") #> <#= PascalCase(c.name) #> { get; set; }
-<#
-        }
-#>
-    }
-
+        [Column("<#= c.name #>")]
+        public <#= c.type #><#= (c.nullable ? (c.type == "string" ? "?" : "?") : "") #> <#= PascalCase(c.name) #> { get; set; }
 <#
     }
-
-    string PascalCase(string input)
-    {
-        if (string.IsNullOrEmpty(input)) return input;
-        var parts = input.Split('_');
-        var sb = new StringBuilder();
-        foreach (var p in parts)
-            sb.Append(char.ToUpper(p[0]) + p.Substring(1));
-        return sb.ToString();
+#>
     }
-
-    string MapPostgresType(string pgType)
-    {
-        switch (pgType)
-        {
-            case "integer": return "int";
-            case "bigint": return "long";
-            case "smallint": return "short";
-            case "boolean": return "bool";
-            case "text":
-            case "character varying":
-            case "character": return "string";
-            case "timestamp without time zone":
-            case "timestamp with time zone":
-            case "date": return "DateTime";
-            case "numeric":
-            case "double precision":
-            case "real": return "decimal";
-            case "uuid": return "Guid";
-            default: return "string";
-        }
-    }
+<#
+}
 #>
 }
+
+<#+
+string PascalCase(string input)
+{
+    if (string.IsNullOrEmpty(input)) return input;
+    var parts = input.Split('_');
+    var sb = new StringBuilder();
+    foreach (var p in parts)
+        sb.Append(char.ToUpper(p[0]) + p.Substring(1));
+    return sb.ToString();
+}
+
+string SafePropertyName(string name)
+{
+    string[] keywords = new string[]
+    {
+        "abstract","as","base","bool","break","byte","case","catch","char","checked","class","const","continue",
+        "decimal","default","delegate","do","double","else","enum","event","explicit","extern","false","finally",
+        "fixed","float","for","foreach","goto","if","implicit","in","int","interface","internal","is","lock",
+        "long","namespace","new","null","object","operator","out","override","params","private","protected",
+        "public","readonly","ref","return","sbyte","sealed","short","sizeof","stackalloc","static","string",
+        "struct","switch","this","throw","true","try","typeof","uint","ulong","unchecked","unsafe","ushort",
+        "using","virtual","void","volatile","while"
+    };
+    return keywords.Contains(name) ? "@" + name : name;
+}
+
+string MapPostgresType(string pgType)
+{
+    switch (pgType)
+    {
+        case "integer": return "int";
+        case "bigint": return "long";
+        case "smallint": return "short";
+        case "boolean": return "bool";
+        case "text":
+        case "character varying":
+        case "character": return "string";
+        case "timestamp without time zone":
+        case "timestamp with time zone":
+        case "date": return "DateTime";
+        case "numeric":
+        case "double precision":
+        case "real": return "decimal";
+        case "uuid": return "Guid";
+        default: return "string";
+    }
+}
+#>
+

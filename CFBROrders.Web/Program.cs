@@ -1,45 +1,40 @@
 using CFBROrders.SDK.DataModel;
 using CFBROrders.SDK.Interfaces;
 using CFBROrders.SDK.Interfaces.Services;
+using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using CFBROrders.SDK.Services;
-using CFBROrders.Web.Areas.Identity.Data;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using CFBROrders.Web.Areas.Data;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using System.Security.Claims;
-using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using NLog;
 using NLog.Web;
 using Radzen;
+using System.Security.Claims;
+using System.Text.Json;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
 logger.Debug("init main");
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("CFBROrdersConnectionString") ?? throw new InvalidOperationException("Connection string 'CFBROrdersConnectionString' not found.");
+var connectionString = builder.Configuration.GetConnectionString("CFBROrdersConnectionString")
+    ?? throw new InvalidOperationException("Connection string 'CFBROrdersConnectionString' not found.");
 
 builder.Services.AddRazorPages();
+builder.Services.AddRadzenComponents();
+builder.Services.AddServerSideBlazor();
+builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseNpgsql(connectionString));
 
-builder.Services.AddDbContext<ApplicationDBContext>(options =>
-    options.UseNpgsql(connectionString));
-
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-{
-    options.SignIn.RequireConfirmedAccount = true;
-})
-.AddEntityFrameworkStores<ApplicationDBContext>()
-.AddDefaultTokenProviders();
-
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultChallengeScheme = "Discord";
-})
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.AccessDeniedPath = "/access-denied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(1);
+        options.SlidingExpiration = true;
+    })
     .AddOAuth("Discord", options =>
     {
         var discordAuth = builder.Configuration.GetSection("Authentication:Discord");
@@ -50,16 +45,11 @@ builder.Services.AddAuthentication(options =>
         options.AuthorizationEndpoint = "https://discord.com/api/oauth2/authorize";
         options.TokenEndpoint = "https://discord.com/api/oauth2/token";
         options.UserInformationEndpoint = "https://discord.com/api/users/@me";
-
         options.Scope.Add("identify");
-        options.Scope.Add("email");
-
         options.SaveTokens = true;
 
         options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
         options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
-        options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
-        options.ClaimActions.MapJsonKey("urn:discord:avatar", "avatar");
 
         options.Events = new OAuthEvents
         {
@@ -68,11 +58,11 @@ builder.Services.AddAuthentication(options =>
                 var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
                 request.Headers.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
-
                 var response = await context.Backchannel.SendAsync(request);
                 response.EnsureSuccessStatusCode();
 
-                using var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var json = await response.Content.ReadAsStringAsync();
+                using var user = System.Text.Json.JsonDocument.Parse(json);
                 context.RunClaimActions(user.RootElement);
             }
         };
@@ -82,25 +72,25 @@ builder.Services.AddAuthentication(options =>
         var redditAuth = builder.Configuration.GetSection("Authentication:Reddit");
         options.ClientId = redditAuth["ClientId"]!;
         options.ClientSecret = redditAuth["ClientSecret"]!;
-        options.CallbackPath = redditAuth["CallbackPath"]; // e.g., "/signin-reddit"
+        options.CallbackPath = redditAuth["CallbackPath"];
 
         options.AuthorizationEndpoint = "https://www.reddit.com/api/v1/authorize";
         options.TokenEndpoint = "https://www.reddit.com/api/v1/access_token";
         options.UserInformationEndpoint = "https://oauth.reddit.com/api/v1/me";
-
         options.Scope.Add("identity");
         options.SaveTokens = true;
 
         options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
         options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
 
-        var httpClient = new HttpClient(new HttpClientHandler());
-        httpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "Basic",
-                Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{options.ClientId}:{options.ClientSecret}"))
-            );
+        var credentials = Convert.ToBase64String(
+            System.Text.Encoding.ASCII.GetBytes($"{redditAuth["ClientId"]}:{redditAuth["ClientSecret"]}"));
+
+        var handler = new HttpClientHandler();
+        var httpClient = new HttpClient(handler);
         httpClient.DefaultRequestHeaders.Add("User-Agent", "CFBROrders/0.1 by Disastrous_Rush4196");
+        httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
 
         options.Backchannel = httpClient;
 
@@ -116,39 +106,25 @@ builder.Services.AddAuthentication(options =>
                 var response = await context.Backchannel.SendAsync(request);
                 response.EnsureSuccessStatusCode();
 
-                using var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var json = await response.Content.ReadAsStringAsync();
+                using var user = System.Text.Json.JsonDocument.Parse(json);
                 context.RunClaimActions(user.RootElement);
+            },
+
+            OnRedirectToAuthorizationEndpoint = context =>
+            {
+                context.Response.Redirect(context.RedirectUri + "&duration=temporary");
+                return Task.CompletedTask;
             }
         };
     });
-
-builder.Services.AddRadzenComponents();
-builder.Services.AddServerSideBlazor();
-
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/login";
-    options.AccessDeniedPath = "/access-denied";
-    options.ExpireTimeSpan = TimeSpan.FromHours(1);
-});
-
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(60);
-    options.Cookie.HttpOnly = false;
-    options.Cookie.SameSite = SameSiteMode.None;
-});
 
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
 builder.Host.UseNLog();
 
 CFBROrdersDatabaseFactory.Setup(connectionString);
-
-//builder.Services.AddScoped<IOperationResult, DBOperationResult>();
 builder.Services.AddScoped<IUnitOfWork, NPocoUnitOfWork>();
-builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationClaimsPrincipalFactory>();
-
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<ITerritoriesService, TerritoriesService>();
 builder.Services.AddScoped<ITeamsService, TeamsService>();
@@ -166,31 +142,26 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/auth-discord", async (HttpContext ctx) =>
 {
     var returnUrl = ctx.Request.Query["ReturnUrl"].FirstOrDefault() ?? "/";
-    await ctx.ChallengeAsync("Discord", new AuthenticationProperties
-    {
-        RedirectUri = returnUrl
-    });
+    await ctx.ChallengeAsync("Discord", new AuthenticationProperties { RedirectUri = "/signin-discord?ReturnUrl=" + returnUrl });
 });
 
-app.MapGet("/signin-discord", async (HttpContext ctx, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) =>
+app.MapGet("/signin-discord", async (HttpContext ctx, ApplicationDBContext db) =>
 {
     var result = await ctx.AuthenticateAsync("Discord");
     if (!result.Succeeded || result.Principal == null)
     {
-        ctx.Response.Redirect("/login?error=discord");
+        ctx.Response.Redirect("/login?error=discord_auth_failed");
         return;
     }
 
     var discordId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
     var username = result.Principal.FindFirstValue(ClaimTypes.Name);
-    var email = result.Principal.FindFirstValue(ClaimTypes.Email);
 
     if (discordId == null)
     {
@@ -198,29 +169,31 @@ app.MapGet("/signin-discord", async (HttpContext ctx, SignInManager<ApplicationU
         return;
     }
 
-    var user = await userManager.FindByLoginAsync("Discord", discordId);
-    if (user == null && email != null)
+    if (!long.TryParse(discordId, out var discordLong))
     {
-        user = await userManager.FindByEmailAsync(email);
+        ctx.Response.Redirect("/login?error=invalid_discord_id");
+        return;
     }
 
+    var user = await db.Users.FirstOrDefaultAsync(u =>
+        u.Platform == "discord" && (u.Uname == username || u.Uname == username + "$0"));
     if (user == null)
     {
-        user = new ApplicationUser
-        {
-            UserName = username ?? $"discord_{discordId}",
-            Email = email
-        };
-        await userManager.CreateAsync(user);
-        await userManager.AddLoginAsync(user, new UserLoginInfo("Discord", discordId, "Discord"));
+        ctx.Response.Redirect("/login?error=not_registered");
+        return;
     }
 
-    await signInManager.SignInAsync(
-    user,
-    new AuthenticationProperties { IsPersistent = true },
-    IdentityConstants.ApplicationScheme
-);
+    var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.Uname ?? ""),
+        new Claim("Platform", user.Platform ?? "")
+    };
 
+    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+    var principal = new ClaimsPrincipal(identity);
+
+    await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
     ctx.Response.Redirect("/");
 });
@@ -228,18 +201,15 @@ app.MapGet("/signin-discord", async (HttpContext ctx, SignInManager<ApplicationU
 app.MapGet("/auth-reddit", async (HttpContext ctx) =>
 {
     var returnUrl = ctx.Request.Query["ReturnUrl"].FirstOrDefault() ?? "/";
-    await ctx.ChallengeAsync("Reddit", new AuthenticationProperties
-    {
-        RedirectUri = returnUrl
-    });
+    await ctx.ChallengeAsync("Reddit", new AuthenticationProperties { RedirectUri = "/signin-reddit?ReturnUrl=" + returnUrl });
 });
 
-app.MapGet("/signin-reddit", async (HttpContext ctx, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) =>
+app.MapGet("/signin-reddit", async (HttpContext ctx, ApplicationDBContext db) =>
 {
     var result = await ctx.AuthenticateAsync("Reddit");
     if (!result.Succeeded || result.Principal == null)
     {
-        ctx.Response.Redirect("/login?error=reddit");
+        ctx.Response.Redirect("/login?error=reddit_auth_failed");
         return;
     }
 
@@ -252,30 +222,32 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, SignInManager<ApplicationUs
         return;
     }
 
-    var user = await userManager.FindByLoginAsync("Reddit", redditId);
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Platform == "reddit" && u.Uname == username);
     if (user == null)
     {
-        user = new ApplicationUser
-        {
-            UserName = username ?? $"reddit_{redditId}"
-        };
-        await userManager.CreateAsync(user);
-        await userManager.AddLoginAsync(user, new UserLoginInfo("Reddit", redditId, "Reddit"));
+        ctx.Response.Redirect("/login?error=not_registered");
+        return;
     }
 
-    await signInManager.SignInAsync(
-        user,
-        new AuthenticationProperties { IsPersistent = true },
-        IdentityConstants.ApplicationScheme
-    );
+    var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.Uname ?? ""),
+        new Claim("Platform", user.Platform ?? "")
+    };
+
+    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+    var principal = new ClaimsPrincipal(identity);
+
+    await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
     ctx.Response.Redirect("/");
 });
 
-app.MapPost("/logout", async (HttpContext ctx) =>
+app.MapGet("/logout", async (HttpContext ctx) =>
 {
-    await ctx.SignOutAsync(IdentityConstants.ApplicationScheme);
-    ctx.Response.Redirect("/");
+    await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    ctx.Response.Redirect("/login");
 });
 
 app.MapBlazorHub();
