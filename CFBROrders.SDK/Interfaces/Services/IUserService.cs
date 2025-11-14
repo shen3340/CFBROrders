@@ -9,7 +9,7 @@ namespace CFBROrders.SDK.Interfaces.Services
 {
     public interface IUserService
     {
-        public List<User> GetAllUsers(string userId);
+        public List<User> GetAllUsers();
 
         public User GetUserByPlatformAndUsername(string platform, string uname);
     }

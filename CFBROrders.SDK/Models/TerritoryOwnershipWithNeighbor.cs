@@ -14,15 +14,15 @@ namespace CFBROrders.SDK.Models
             get
             {
                 if (string.IsNullOrWhiteSpace(Neighbors))
-                    return new List<Neighbor>();
+                    return [];
 
                 try
                 {
-                    return JsonSerializer.Deserialize<List<Neighbor>>(Neighbors) ?? new List<Neighbor>();
+                    return JsonSerializer.Deserialize<List<Neighbor>>(Neighbors) ?? [];
                 }
                 catch
                 {
-                    return new List<Neighbor>();
+                    return [];
                 }
             }
         }
@@ -32,9 +32,9 @@ namespace CFBROrders.SDK.Models
 
     public class Neighbor
     {
-        public int id { get; set; }
-        public string name { get; set; } = "";
-        public string shortName { get; set; } = "";
-        public string owner { get; set; } = "";
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string ShortName { get; set; } = "";
+        public string Owner { get; set; } = "";
     }
 }

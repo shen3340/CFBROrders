@@ -1,15 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using CFBROrders.SDK.Models;
 
-namespace CFBROrders.Web.Areas.Data
+namespace CFBROrders.Web.Data
 {
-    public partial class ApplicationDBContext : DbContext
+    public partial class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : DbContext(options)
     {
-        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options)
-            : base(options)
-        {
-        }
-
         public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

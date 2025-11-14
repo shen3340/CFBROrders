@@ -30,7 +30,7 @@
             <Template Context="territory">
                 @{
                     var opposingNeighbors = territory.NeighborList
-                    .Where(n => n.owner != team)
+                    .Where(n => n.Owner != team)
                     .ToList();
                 }
 
@@ -39,7 +39,7 @@
                     <ul>
                         @foreach (var neighbor in opposingNeighbors)
                         {
-                            <li>@neighbor.name (@neighbor.owner)</li>
+                            <li>@neighbor.Name (@neighbor.Owner)</li>
                         }
                     </ul>
                 }
@@ -111,7 +111,7 @@
     private int currentDay;
     private double starPower;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         try
         {
@@ -143,7 +143,7 @@
             var neighbors = JsonSerializer.Deserialize<List<Neighbor>>(neighborsJson);
             if (neighbors == null || !neighbors.Any()) return string.Empty;
 
-            return string.Join(", ", neighbors.Select(n => $"{n.name} ({n.owner})"));
+            return string.Join(", ", neighbors.Select(n => $"{n.Name} ({n.Owner})"));
         }
         catch
         {

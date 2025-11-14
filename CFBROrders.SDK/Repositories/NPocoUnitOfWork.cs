@@ -6,9 +6,9 @@ namespace CFBROrders.SDK.Repositories
 {
     public class NPocoUnitOfWork : IUnitOfWork
     {
-        private IDatabase _db = null;
+        private readonly NPoco.Database _db;
 
-        public IDatabase db
+        public IDatabase Db
         {
             get
             {

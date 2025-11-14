@@ -5,7 +5,7 @@ using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using CFBROrders.SDK.Services;
-using CFBROrders.Web.Areas.Data;
+using CFBROrders.Web.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -28,6 +28,7 @@ builder.Services.AddRadzenComponents();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseNpgsql(connectionString));
 
+// Add authentication, I'm assuming Keycloak will be added here later
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -149,7 +150,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/auth-discord", async (HttpContext ctx) =>
+// Discord Authentication
+app.MapGet("/auth-discord", async ctx =>
 {
     var returnUrl = ctx.Request.Query["ReturnUrl"].FirstOrDefault() ?? "/";
     await ctx.ChallengeAsync("Discord", new AuthenticationProperties { RedirectUri = "/signin-discord?ReturnUrl=" + returnUrl });
@@ -158,6 +160,8 @@ app.MapGet("/auth-discord", async (HttpContext ctx) =>
 app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) =>
 {
     var result = await ctx.AuthenticateAsync("Discord");
+
+    // if Oauth failed completely
     if (!result.Succeeded || result.Principal == null)
     {
         ctx.Response.Redirect("/login?error=discord_auth_failed");
@@ -167,12 +171,14 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) 
     var discordId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
     var username = result.Principal.FindFirstValue(ClaimTypes.Name);
 
+    // if there's no discord id
     if (discordId == null)
     {
         ctx.Response.Redirect("/login?error=missingid");
         return;
     }
 
+    // if discord id changed how the ID is formatted
     if (!long.TryParse(discordId, out var discordLong))
     {
         ctx.Response.Redirect("/login?error=invalid_discord_id");
@@ -181,6 +187,7 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) 
 
     var user = UserService.GetUserByPlatformAndUsername("discord", username);
 
+    // if user hasn't already made a CFBR account
     if (user == null)
     {
         ctx.Response.Redirect("/login?error=not_registered");
@@ -189,9 +196,9 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) 
 
     var claims = new List<Claim>
     {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Uname ?? ""),
-        new Claim("Platform", user.Platform ?? "")
+        new (ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new (ClaimTypes.Name, user.Uname ?? ""),
+        new ("Platform", user.Platform ?? "")
     };
 
     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -202,7 +209,8 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) 
     ctx.Response.Redirect("/");
 });
 
-app.MapGet("/auth-reddit", async (HttpContext ctx) =>
+// Reddit Authentication
+app.MapGet("/auth-reddit", async ctx =>
 {
     var returnUrl = ctx.Request.Query["ReturnUrl"].FirstOrDefault() ?? "/";
     await ctx.ChallengeAsync("Reddit", new AuthenticationProperties { RedirectUri = "/signin-reddit?ReturnUrl=" + returnUrl });
@@ -212,6 +220,7 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =
 {
     var result = await ctx.AuthenticateAsync("Reddit");
 
+    // if Oauth failed completely
     if (!result.Succeeded || result.Principal == null)
     {
         ctx.Response.Redirect("/login?error=reddit_auth_failed");
@@ -221,6 +230,7 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =
     var redditId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
     var username = result.Principal.FindFirstValue(ClaimTypes.Name);
 
+    // if there's no reddit id
     if (redditId == null)
     {
         ctx.Response.Redirect("/login?error=missingid");
@@ -229,6 +239,7 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =
 
     var user = UserService.GetUserByPlatformAndUsername("reddit", username);
 
+    // if the user hasn't already made a CFBR account
     if (user == null)
     {
         ctx.Response.Redirect("/login?error=not_registered");
@@ -237,9 +248,9 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =
 
     var claims = new List<Claim>
     {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Uname ?? ""),
-        new Claim("Platform", user.Platform ?? "")
+        new (ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new (ClaimTypes.Name, user.Uname ?? ""),
+        new ("Platform", user.Platform ?? "")
     };
 
     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -250,7 +261,8 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =
     ctx.Response.Redirect("/");
 });
 
-app.MapGet("/logout", async (HttpContext ctx) =>
+// Logout
+app.MapGet("/logout", async ctx =>
 {
     await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     ctx.Response.Redirect("/login");

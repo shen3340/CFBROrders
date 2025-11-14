@@ -13,44 +13,46 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Services
 {
-    public class UserService : IUserService
+    public class UserService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<UserService> logger) : IUserService
     {
-        public IUnitOfWork UnitOfWork { get; set; }
-        public IOperationResult Result { get; set; }
+        public IUnitOfWork UnitOfWork { get; set; } = unitOfWork;
+        public IOperationResult Result { get; set; } = result;
 
-        private ILogger _logger;
+        private readonly ILogger _logger = logger;
 
-        public UserService(IUnitOfWork unitOfWork,  IOperationResult result, ILogger<UserService> logger)
+        private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).Db;
+
+        public List<User> GetAllUsers()
         {
-            UnitOfWork = unitOfWork;
-            Result = result;
-            _logger = logger;
-        }
+            Result.Reset();
 
-        private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).db;
+            List<User> users;
 
-        public List<User> GetAllUsers(string userId)
-        {
-            var users = new List<User>();
             try
             {
                 users = Db.Fetch<User>(
                     @"SELECT *
                       FROM users"
                 ).ToList();
-
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all users");
+
+                Result.GetException(ex);
+
                 throw;
             }
+            _logger.LogInformation("Success getting all users");
+            
             return users;
         }
 
         public User GetUserByPlatformAndUsername(string platform, string uname)
         {
-            var user = new User();
+            Result.Reset();
+
+            User user;
 
             try
             {
@@ -61,11 +63,13 @@ namespace CFBROrders.SDK.Services
                     AND split_part(uname, '$', 1) = @1",
                     platform, uname
                 );
-
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting user with platform: {platform} and uname: {uname}");
+                
+                Result.GetException(ex);
+
                 throw;
             }
             _logger.LogInformation($"Success getting user with platform: {platform} and uname: {uname}");

@@ -12,28 +12,24 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Services
 {
-    public class TerritoryService : ITerritoryService
+    public class TerritoryService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<TeamService> logger) : ITerritoryService
     {
-        public IUnitOfWork UnitOfWork { get; set; }
-        public IOperationResult Result { get; set; }
+        public IUnitOfWork UnitOfWork { get; set; } = unitOfWork;
+        public IOperationResult Result { get; set; } = result;
 
-        private ILogger _logger;
+        private readonly ILogger _logger = logger;
 
-        public TerritoryService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<TeamService> logger)
-        {
-            UnitOfWork = unitOfWork;
-            Result = result;
-            _logger = logger;
-        }
-
-        private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).db;
+        private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).Db;
 
         public List<TerritoryOwnershipWithNeighbor> GetTerritoryOwnershipWithNeighbors(int season, int day, string team )
         {
-            var Teams = new List<TerritoryOwnershipWithNeighbor>();
+            Result.Reset();
+
+            List<TerritoryOwnershipWithNeighbor> teams;
+
             try
             {
-                Teams = Db.Fetch<TerritoryOwnershipWithNeighbor>(
+                teams = Db.Fetch<TerritoryOwnershipWithNeighbor>(
                     @"SELECT 
                         *
                       FROM territory_ownership_with_neighbors WHERE season = @0 AND day = @1
@@ -43,8 +39,14 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while fetching all Teams with neighbors.");
+                
+                Result.GetException(ex);
+
+                throw;
             }
-            return Teams;
+            _logger.LogInformation($"Fetched territory ownership with neighbors for Season {season}, Day {day}, and Team {team}.");
+            
+            return teams;
         }
 
         public List<(string Name, string Owner)> GetAttackableTerritories(string team, int season, int day)
@@ -52,9 +54,9 @@ namespace CFBROrders.SDK.Services
             var territories = GetTerritoryOwnershipWithNeighbors(season, day, team);
 
             return territories.SelectMany(t => t.NeighborList)
-                              .Where(n => n.owner != team)
-                              .GroupBy(n => n.name)
-                              .Select(g => (g.Key, g.First().owner))
+                              .Where(n => n.Owner != team)
+                              .GroupBy(n => n.Name)
+                              .Select(g => (g.Key, g.First().Owner))
                               .OrderBy(t => t.Key)
                               .ToList();
         }
