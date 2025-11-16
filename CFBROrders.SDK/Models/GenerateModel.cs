@@ -12,7 +12,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 //     Schema:                 `public`
 //     Include Views:          `true`
 //
-//     Last Generated:         `11/13/2025 7:44:10 PM`
+//     Last Generated:         `11/16/2025 10:59:40 AM`
 
 
 
@@ -22,13 +22,13 @@ namespace CFBROrders.SDK.Models
     public partial class AuditLog
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("user_id")]
-        public string UserId { get; set; }
+        public int UserId { get; set; }
         [Column("event")]
-        public string Event { get; set; }
+        public int Event { get; set; }
         [Column("timestamp")]
-        public string Timestamp { get; set; }
+        public DateTime Timestamp { get; set; }
         [Column("data")]
         public string? Data { get; set; }
         [Column("cip")]
@@ -40,7 +40,7 @@ namespace CFBROrders.SDK.Models
     public partial class AwardInfo
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("name")]
         public string? Name { get; set; }
         [Column("info")]
@@ -50,11 +50,11 @@ namespace CFBROrders.SDK.Models
     public partial class Award
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("user_id")]
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         [Column("award_id")]
-        public string? AwardId { get; set; }
+        public int? AwardId { get; set; }
         [Column("award_date")]
         public string? AwardDate { get; set; }
     }
@@ -62,9 +62,9 @@ namespace CFBROrders.SDK.Models
     public partial class Ban
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("class")]
-        public string? Class { get; set; }
+        public int? Class { get; set; }
         [Column("cip")]
         public string? Cip { get; set; }
         [Column("uname")]
@@ -78,75 +78,75 @@ namespace CFBROrders.SDK.Models
     public partial class Captcha
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("title")]
         public string? Title { get; set; }
         [Column("content")]
         public string? Content { get; set; }
         [Column("creation")]
-        public string? Creation { get; set; }
+        public DateTime? Creation { get; set; }
     }
     [Table("continuation_polls")]
     public partial class ContinuationPoll
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("question")]
         public string? Question { get; set; }
         [Column("incrment")]
-        public string? Incrment { get; set; }
+        public int? Incrment { get; set; }
         [Column("turn_id")]
-        public string? TurnId { get; set; }
+        public int? TurnId { get; set; }
     }
     [Table("continuation_responses")]
     public partial class ContinuationResponse
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("poll_id")]
-        public string? PollId { get; set; }
+        public int? PollId { get; set; }
         [Column("user_id")]
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         [Column("response")]
-        public string? Response { get; set; }
+        public bool? Response { get; set; }
     }
     [Table("discord_id_logging")]
     public partial class DiscordIdLogging
     {
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("territory")]
-        public string? Territory { get; set; }
+        public int? Territory { get; set; }
         [Column("user_id")]
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         [Column("team")]
-        public string? Team { get; set; }
+        public int? Team { get; set; }
         [Column("player")]
-        public string? Player { get; set; }
+        public int? Player { get; set; }
         [Column("mvp")]
-        public string? Mvp { get; set; }
+        public bool? Mvp { get; set; }
         [Column("uname")]
         public string? Uname { get; set; }
         [Column("turns")]
-        public string? Turns { get; set; }
+        public int? Turns { get; set; }
         [Column("mvps")]
-        public string? Mvps { get; set; }
+        public int? Mvps { get; set; }
         [Column("platform")]
         public string? Platform { get; set; }
         [Column("discord_id")]
-        public string? DiscordId { get; set; }
+        public long? DiscordId { get; set; }
         [Column("tname")]
         public string? Tname { get; set; }
         [Column("power")]
-        public string? Power { get; set; }
+        public double? Power { get; set; }
         [Column("weight")]
-        public string? Weight { get; set; }
+        public double? Weight { get; set; }
         [Column("stars")]
-        public string? Stars { get; set; }
+        public int? Stars { get; set; }
         [Column("current_stars")]
-        public string? CurrentStars { get; set; }
+        public int? CurrentStars { get; set; }
     }
     [Table("heat")]
     public partial class Heat
@@ -154,13 +154,13 @@ namespace CFBROrders.SDK.Models
         [Column("name")]
         public string? Name { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("cumulative_players")]
-        public string? CumulativePlayers { get; set; }
+        public long? CumulativePlayers { get; set; }
         [Column("cumulative_power")]
-        public string? CumulativePower { get; set; }
+        public double? CumulativePower { get; set; }
     }
     [Table("heat_full")]
     public partial class HeatFull
@@ -168,13 +168,13 @@ namespace CFBROrders.SDK.Models
         [Column("name")]
         public string? Name { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("cumulative_players")]
-        public string? CumulativePlayers { get; set; }
+        public long? CumulativePlayers { get; set; }
         [Column("cumulative_power")]
-        public string? CumulativePower { get; set; }
+        public double? CumulativePower { get; set; }
         [Column("owner")]
         public string? Owner { get; set; }
     }
@@ -182,7 +182,7 @@ namespace CFBROrders.SDK.Models
     public partial class Log
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("route")]
         public string? Route { get; set; }
         [Column("query")]
@@ -190,69 +190,69 @@ namespace CFBROrders.SDK.Models
         [Column("payload")]
         public string? Payload { get; set; }
         [Column("timestamp")]
-        public string? Timestamp { get; set; }
+        public DateTime? Timestamp { get; set; }
     }
     [Table("moves")]
     public partial class Move
     {
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("territory")]
-        public string? Territory { get; set; }
+        public int? Territory { get; set; }
         [Column("user_id")]
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         [Column("team")]
-        public string? Team { get; set; }
+        public int? Team { get; set; }
         [Column("player")]
-        public string? Player { get; set; }
+        public int? Player { get; set; }
         [Column("mvp")]
-        public string? Mvp { get; set; }
+        public bool? Mvp { get; set; }
         [Column("uname")]
         public string? Uname { get; set; }
         [Column("turns")]
-        public string? Turns { get; set; }
+        public int? Turns { get; set; }
         [Column("mvps")]
-        public string? Mvps { get; set; }
+        public int? Mvps { get; set; }
         [Column("tname")]
         public string? Tname { get; set; }
         [Column("power")]
-        public string? Power { get; set; }
+        public double? Power { get; set; }
         [Column("weight")]
-        public string? Weight { get; set; }
+        public double? Weight { get; set; }
         [Column("stars")]
-        public string? Stars { get; set; }
+        public int? Stars { get; set; }
         [Column("current_stars")]
-        public string? CurrentStars { get; set; }
+        public int? CurrentStars { get; set; }
     }
     [Table("odds")]
     public partial class Odd
     {
         [Column("ones")]
-        public string? Ones { get; set; }
+        public int? Ones { get; set; }
         [Column("twos")]
-        public string? Twos { get; set; }
+        public int? Twos { get; set; }
         [Column("threes")]
-        public string? Threes { get; set; }
+        public int? Threes { get; set; }
         [Column("fours")]
-        public string? Fours { get; set; }
+        public int? Fours { get; set; }
         [Column("fives")]
-        public string? Fives { get; set; }
+        public int? Fives { get; set; }
         [Column("players")]
-        public string? Players { get; set; }
+        public int? Players { get; set; }
         [Column("teampower")]
-        public string? Teampower { get; set; }
+        public double? Teampower { get; set; }
         [Column("territorypower")]
-        public string? Territorypower { get; set; }
+        public double? Territorypower { get; set; }
         [Column("chance")]
-        public string? Chance { get; set; }
+        public double? Chance { get; set; }
         [Column("team")]
-        public string? Team { get; set; }
+        public int? Team { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("territory_name")]
         public string? TerritoryName { get; set; }
         [Column("team_name")]
@@ -268,57 +268,77 @@ namespace CFBROrders.SDK.Models
         [Column("mvp")]
         public string? Mvp { get; set; }
     }
+    [Table("order_allocations")]
+    public partial class OrderAllocation
+    {
+        [Column("id")]
+        public int Id { get; set; }
+        [Column("turn_id")]
+        public int TurnId { get; set; }
+        [Column("team_id")]
+        public int TeamId { get; set; }
+        [Column("territory_id")]
+        public int TerritoryId { get; set; }
+        [Column("owner_id")]
+        public int OwnerId { get; set; }
+        [Column("previous_owner_id")]
+        public int PreviousOwnerId { get; set; }
+        [Column("starpower_allocation")]
+        public int? StarpowerAllocation { get; set; }
+        [Column("priority")]
+        public int? Priority { get; set; }
+    }
     [Table("past_turns")]
     public partial class PastTurn
     {
         [Column("id")]
-        public string? Id { get; set; }
+        public int? Id { get; set; }
         [Column("user_id")]
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         [Column("territory")]
-        public string? Territory { get; set; }
+        public int? Territory { get; set; }
         [Column("mvp")]
-        public string? Mvp { get; set; }
+        public bool? Mvp { get; set; }
         [Column("power")]
-        public string? Power { get; set; }
+        public double? Power { get; set; }
         [Column("multiplier")]
-        public string? Multiplier { get; set; }
+        public double? Multiplier { get; set; }
         [Column("weight")]
-        public string? Weight { get; set; }
+        public double? Weight { get; set; }
         [Column("stars")]
-        public string? Stars { get; set; }
+        public int? Stars { get; set; }
         [Column("team")]
-        public string? Team { get; set; }
+        public int? Team { get; set; }
         [Column("alt_score")]
-        public string? AltScore { get; set; }
+        public int? AltScore { get; set; }
         [Column("merc")]
-        public string? Merc { get; set; }
+        public bool? Merc { get; set; }
         [Column("turn_id")]
-        public string? TurnId { get; set; }
+        public int? TurnId { get; set; }
     }
     [Table("players")]
     public partial class Player
     {
         [Column("id")]
-        public string? Id { get; set; }
+        public int? Id { get; set; }
         [Column("uname")]
         public string? Uname { get; set; }
         [Column("platform")]
         public string? Platform { get; set; }
         [Column("current_team")]
-        public string? CurrentTeam { get; set; }
+        public int? CurrentTeam { get; set; }
         [Column("overall")]
-        public string? Overall { get; set; }
+        public int? Overall { get; set; }
         [Column("turns")]
-        public string? Turns { get; set; }
+        public int? Turns { get; set; }
         [Column("game_turns")]
-        public string? GameTurns { get; set; }
+        public int? GameTurns { get; set; }
         [Column("mvps")]
-        public string? Mvps { get; set; }
+        public int? Mvps { get; set; }
         [Column("streak")]
-        public string? Streak { get; set; }
+        public int? Streak { get; set; }
         [Column("awards")]
-        public string? Awards { get; set; }
+        public int? Awards { get; set; }
         [Column("tname")]
         public string? Tname { get; set; }
     }
@@ -326,25 +346,25 @@ namespace CFBROrders.SDK.Models
     public partial class RegionOwnership
     {
         [Column("owner_count")]
-        public string? OwnerCount { get; set; }
+        public long? OwnerCount { get; set; }
         [Column("owners")]
         public int[]? Owners { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("region")]
-        public string? Region { get; set; }
+        public int? Region { get; set; }
     }
     [Table("regions")]
     public partial class Region
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("name")]
         public string? Name { get; set; }
         [Column("submap")]
-        public string Submap { get; set; }
+        public int Submap { get; set; }
     }
     [Table("rollinfo")]
     public partial class Rollinfo
@@ -354,13 +374,13 @@ namespace CFBROrders.SDK.Models
         [Column("rollendtime")]
         public string? Rollendtime { get; set; }
         [Column("chaosrerolls")]
-        public string? Chaosrerolls { get; set; }
+        public int? Chaosrerolls { get; set; }
         [Column("chaosweight")]
-        public string? Chaosweight { get; set; }
+        public int? Chaosweight { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("json_agg")]
         public string? JsonAgg { get; set; }
     }
@@ -368,115 +388,115 @@ namespace CFBROrders.SDK.Models
     public partial class Statistic
     {
         [Column("turn_id")]
-        public string? TurnId { get; set; }
+        public int? TurnId { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("team")]
-        public string? Team { get; set; }
+        public int? Team { get; set; }
         [Column("rank")]
-        public string? Rank { get; set; }
+        public int? Rank { get; set; }
         [Column("territorycount")]
-        public string? Territorycount { get; set; }
+        public int? Territorycount { get; set; }
         [Column("playercount")]
-        public string? Playercount { get; set; }
+        public int? Playercount { get; set; }
         [Column("merccount")]
-        public string? Merccount { get; set; }
+        public int? Merccount { get; set; }
         [Column("starpower")]
-        public string? Starpower { get; set; }
+        public double? Starpower { get; set; }
         [Column("efficiency")]
-        public string? Efficiency { get; set; }
+        public double? Efficiency { get; set; }
         [Column("effectivepower")]
-        public string? Effectivepower { get; set; }
+        public double? Effectivepower { get; set; }
         [Column("ones")]
-        public string? Ones { get; set; }
+        public int? Ones { get; set; }
         [Column("twos")]
-        public string? Twos { get; set; }
+        public int? Twos { get; set; }
         [Column("threes")]
-        public string? Threes { get; set; }
+        public int? Threes { get; set; }
         [Column("fours")]
-        public string? Fours { get; set; }
+        public int? Fours { get; set; }
         [Column("fives")]
-        public string? Fives { get; set; }
+        public int? Fives { get; set; }
         [Column("tname")]
         public string? Tname { get; set; }
         [Column("logo")]
         public string? Logo { get; set; }
         [Column("regions")]
-        public string? Regions { get; set; }
+        public long? Regions { get; set; }
     }
     [Table("stats")]
     public partial class Stat
     {
         [Column("team")]
-        public string? Team { get; set; }
+        public int? Team { get; set; }
         [Column("rank")]
-        public string? Rank { get; set; }
+        public int? Rank { get; set; }
         [Column("territorycount")]
-        public string? Territorycount { get; set; }
+        public int? Territorycount { get; set; }
         [Column("playercount")]
-        public string? Playercount { get; set; }
+        public int? Playercount { get; set; }
         [Column("merccount")]
-        public string? Merccount { get; set; }
+        public int? Merccount { get; set; }
         [Column("starpower")]
-        public string? Starpower { get; set; }
+        public double? Starpower { get; set; }
         [Column("efficiency")]
-        public string? Efficiency { get; set; }
+        public double? Efficiency { get; set; }
         [Column("effectivepower")]
-        public string? Effectivepower { get; set; }
+        public double? Effectivepower { get; set; }
         [Column("ones")]
-        public string? Ones { get; set; }
+        public int? Ones { get; set; }
         [Column("twos")]
-        public string? Twos { get; set; }
+        public int? Twos { get; set; }
         [Column("threes")]
-        public string? Threes { get; set; }
+        public int? Threes { get; set; }
         [Column("fours")]
-        public string? Fours { get; set; }
+        public int? Fours { get; set; }
         [Column("fives")]
-        public string? Fives { get; set; }
+        public int? Fives { get; set; }
         [Column("turn_id")]
-        public string? TurnId { get; set; }
+        public int? TurnId { get; set; }
     }
     [Table("team_player_moves")]
     public partial class TeamPlayerMove
     {
         [Column("id")]
-        public string? Id { get; set; }
+        public int? Id { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("team")]
         public string? Team { get; set; }
         [Column("player")]
         public string? Player { get; set; }
         [Column("stars")]
-        public string? Stars { get; set; }
+        public int? Stars { get; set; }
         [Column("mvp")]
-        public string? Mvp { get; set; }
+        public bool? Mvp { get; set; }
         [Column("territory")]
         public string? Territory { get; set; }
         [Column("regularteam")]
         public string? Regularteam { get; set; }
         [Column("weight")]
-        public string? Weight { get; set; }
+        public double? Weight { get; set; }
         [Column("power")]
-        public string? Power { get; set; }
+        public double? Power { get; set; }
         [Column("multiplier")]
-        public string? Multiplier { get; set; }
+        public double? Multiplier { get; set; }
     }
     [Table("teams")]
     public partial class Team
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("tname")]
         public string? Tname { get; set; }
         [Column("tshortname")]
         public string? Tshortname { get; set; }
         [Column("creation_date")]
-        public string? CreationDate { get; set; }
+        public DateTime? CreationDate { get; set; }
         [Column("color_1")]
         public string? Color1 { get; set; }
         [Column("color_2")]
@@ -486,41 +506,41 @@ namespace CFBROrders.SDK.Models
         [Column("seasons")]
         public int[]? Seasons { get; set; }
         [Column("respawn_count")]
-        public string RespawnCount { get; set; }
+        public int RespawnCount { get; set; }
     }
     [Table("territories")]
     public partial class Territory
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("name")]
         public string? Name { get; set; }
         [Column("region")]
-        public string? Region { get; set; }
+        public int? Region { get; set; }
     }
     [Table("territory_adjacency")]
     public partial class TerritoryAdjacency
     {
         [Column("id")]
-        public string? Id { get; set; }
+        public int? Id { get; set; }
         [Column("territory_id")]
-        public string? TerritoryId { get; set; }
+        public int? TerritoryId { get; set; }
         [Column("adjacent_id")]
-        public string? AdjacentId { get; set; }
+        public int? AdjacentId { get; set; }
         [Column("note")]
         public string? Note { get; set; }
         [Column("min_turn")]
-        public string? MinTurn { get; set; }
+        public int? MinTurn { get; set; }
         [Column("max_turn")]
-        public string? MaxTurn { get; set; }
+        public int? MaxTurn { get; set; }
     }
     [Table("territory_neighbor_history")]
     public partial class TerritoryNeighborHistory
     {
         [Column("turn_id")]
-        public string? TurnId { get; set; }
+        public int? TurnId { get; set; }
         [Column("id")]
-        public string? Id { get; set; }
+        public int? Id { get; set; }
         [Column("neighbors")]
         public string? Neighbors { get; set; }
     }
@@ -528,39 +548,39 @@ namespace CFBROrders.SDK.Models
     public partial class TerritoryOwnership
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("territory_id")]
-        public string? TerritoryId { get; set; }
+        public int? TerritoryId { get; set; }
         [Column("owner_id")]
-        public string? OwnerId { get; set; }
+        public int? OwnerId { get; set; }
         [Column("previous_owner_id")]
-        public string? PreviousOwnerId { get; set; }
+        public int? PreviousOwnerId { get; set; }
         [Column("random_number")]
-        public string? RandomNumber { get; set; }
+        public double? RandomNumber { get; set; }
         [Column("timestamp")]
-        public string? Timestamp { get; set; }
+        public DateTime? Timestamp { get; set; }
         [Column("mvp")]
-        public string? Mvp { get; set; }
+        public int? Mvp { get; set; }
         [Column("turn_id")]
-        public string? TurnId { get; set; }
+        public int? TurnId { get; set; }
         [Column("is_respawn")]
-        public string IsRespawn { get; set; }
+        public bool IsRespawn { get; set; }
     }
     [Table("territory_ownership_with_neighbors")]
     public partial class TerritoryOwnershipWithNeighbor
     {
         [Column("territory_id")]
-        public string? TerritoryId { get; set; }
+        public int? TerritoryId { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("name")]
         public string? Name { get; set; }
         [Column("tname")]
         public string? Tname { get; set; }
         [Column("region")]
-        public string? Region { get; set; }
+        public int? Region { get; set; }
         [Column("region_name")]
         public string? RegionName { get; set; }
         [Column("neighbors")]
@@ -570,11 +590,11 @@ namespace CFBROrders.SDK.Models
     public partial class TerritoryOwnershipWithoutNeighbor
     {
         [Column("territory_id")]
-        public string? TerritoryId { get; set; }
+        public int? TerritoryId { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("name")]
         public string? Name { get; set; }
         [Column("owner")]
@@ -582,9 +602,9 @@ namespace CFBROrders.SDK.Models
         [Column("prev_owner")]
         public string? PrevOwner { get; set; }
         [Column("timestamp")]
-        public string? Timestamp { get; set; }
+        public DateTime? Timestamp { get; set; }
         [Column("random_number")]
-        public string? RandomNumber { get; set; }
+        public double? RandomNumber { get; set; }
         [Column("mvp")]
         public string? Mvp { get; set; }
     }
@@ -592,55 +612,55 @@ namespace CFBROrders.SDK.Models
     public partial class TerritoryStat
     {
         [Column("team")]
-        public string? Team { get; set; }
+        public int? Team { get; set; }
         [Column("ones")]
-        public string? Ones { get; set; }
+        public int? Ones { get; set; }
         [Column("twos")]
-        public string? Twos { get; set; }
+        public int? Twos { get; set; }
         [Column("threes")]
-        public string? Threes { get; set; }
+        public int? Threes { get; set; }
         [Column("fours")]
-        public string? Fours { get; set; }
+        public int? Fours { get; set; }
         [Column("fives")]
-        public string? Fives { get; set; }
+        public int? Fives { get; set; }
         [Column("teampower")]
-        public string? Teampower { get; set; }
+        public double? Teampower { get; set; }
         [Column("chance")]
-        public string? Chance { get; set; }
+        public double? Chance { get; set; }
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("territory")]
-        public string? Territory { get; set; }
+        public int? Territory { get; set; }
         [Column("territory_power")]
-        public string? TerritoryPower { get; set; }
+        public double? TerritoryPower { get; set; }
         [Column("turn_id")]
-        public string? TurnId { get; set; }
+        public int? TurnId { get; set; }
     }
     [Table("turninfo")]
     public partial class Turninfo
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("season")]
-        public string? Season { get; set; }
+        public int? Season { get; set; }
         [Column("day")]
-        public string? Day { get; set; }
+        public int? Day { get; set; }
         [Column("complete")]
-        public string? Complete { get; set; }
+        public bool? Complete { get; set; }
         [Column("active")]
-        public string? Active { get; set; }
+        public bool? Active { get; set; }
         [Column("finale")]
-        public string? Finale { get; set; }
+        public bool? Finale { get; set; }
         [Column("chaosrerolls")]
-        public string? Chaosrerolls { get; set; }
+        public int? Chaosrerolls { get; set; }
         [Column("chaosweight")]
-        public string? Chaosweight { get; set; }
+        public int? Chaosweight { get; set; }
         [Column("rollendtime")]
-        public string? Rollendtime { get; set; }
+        public DateTime? Rollendtime { get; set; }
         [Column("rollstarttime")]
-        public string? Rollstarttime { get; set; }
+        public DateTime? Rollstarttime { get; set; }
         [Column("allornothingenabled")]
-        public string? Allornothingenabled { get; set; }
+        public bool? Allornothingenabled { get; set; }
         [Column("map")]
         public string? Map { get; set; }
     }
@@ -648,71 +668,83 @@ namespace CFBROrders.SDK.Models
     public partial class Turn
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("user_id")]
-        public string? UserId { get; set; }
+        public int? UserId { get; set; }
         [Column("territory")]
-        public string? Territory { get; set; }
+        public int? Territory { get; set; }
         [Column("mvp")]
-        public string Mvp { get; set; }
+        public bool Mvp { get; set; }
         [Column("power")]
-        public string? Power { get; set; }
+        public double? Power { get; set; }
         [Column("multiplier")]
-        public string? Multiplier { get; set; }
+        public double? Multiplier { get; set; }
         [Column("weight")]
-        public string? Weight { get; set; }
+        public double? Weight { get; set; }
         [Column("stars")]
-        public string? Stars { get; set; }
+        public int? Stars { get; set; }
         [Column("team")]
-        public string? Team { get; set; }
+        public int? Team { get; set; }
         [Column("alt_score")]
-        public string? AltScore { get; set; }
+        public int? AltScore { get; set; }
         [Column("merc")]
-        public string? Merc { get; set; }
+        public bool? Merc { get; set; }
         [Column("turn_id")]
-        public string? TurnId { get; set; }
+        public int? TurnId { get; set; }
+    }
+    [Table("userorders")]
+    public partial class Userorder
+    {
+        [Column("id")]
+        public int Id { get; set; }
+        [Column("userid")]
+        public int Userid { get; set; }
+        [Column("territory_id")]
+        public int TerritoryId { get; set; }
+        [Column("starpower")]
+        public int Starpower { get; set; }
     }
     [Table("users")]
     public partial class User
     {
         [Column("id")]
-        public string Id { get; set; }
+        public int Id { get; set; }
         [Column("uname")]
         public string Uname { get; set; }
         [Column("platform")]
         public string Platform { get; set; }
         [Column("join_date")]
-        public string? JoinDate { get; set; }
+        public DateTime? JoinDate { get; set; }
         [Column("current_team")]
-        public string CurrentTeam { get; set; }
+        public int CurrentTeam { get; set; }
         [Column("auth_key")]
         public string? AuthKey { get; set; }
         [Column("overall")]
-        public string? Overall { get; set; }
+        public int? Overall { get; set; }
         [Column("turns")]
-        public string? Turns { get; set; }
+        public int? Turns { get; set; }
         [Column("game_turns")]
-        public string? GameTurns { get; set; }
+        public int? GameTurns { get; set; }
         [Column("mvps")]
-        public string? Mvps { get; set; }
+        public int? Mvps { get; set; }
         [Column("streak")]
-        public string? Streak { get; set; }
+        public int? Streak { get; set; }
         [Column("awards")]
-        public string? Awards { get; set; }
+        public int? Awards { get; set; }
         [Column("role_id")]
-        public string? RoleId { get; set; }
+        public int? RoleId { get; set; }
         [Column("playing_for")]
-        public string? PlayingFor { get; set; }
+        public int? PlayingFor { get; set; }
         [Column("past_teams")]
         public int[]? PastTeams { get; set; }
         [Column("awards_bak")]
-        public string? AwardsBak { get; set; }
+        public int? AwardsBak { get; set; }
         [Column("discord_id")]
-        public string? DiscordId { get; set; }
+        public long? DiscordId { get; set; }
         [Column("is_alt")]
-        public string? IsAlt { get; set; }
+        public bool? IsAlt { get; set; }
         [Column("must_captcha")]
-        public string? MustCaptcha { get; set; }
+        public bool? MustCaptcha { get; set; }
     }
 }
 

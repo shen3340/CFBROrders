@@ -160,30 +160,50 @@ string MapPostgresType(string pgType)
         {
             case "_int4": return "int[]";
             case "_int8": return "long[]";
+            case "_int2": return "short[]";
             case "_text": return "string[]";
-            default: return "string[]"; // fallback
+            default: return "string[]";
         }
     }
 
     switch (pgType)
     {
+        case "int4":
         case "integer": return "int";
+
+        case "int8":
         case "bigint": return "long";
+
+        case "int2":
         case "smallint": return "short";
+
+        case "bool":
         case "boolean": return "bool";
+
         case "text":
+        case "varchar":
         case "character varying":
         case "character": return "string";
+
+        case "timestamp":
         case "timestamp without time zone":
         case "timestamp with time zone":
         case "date": return "DateTime";
+
         case "numeric": return "decimal";
+
+        case "float8":
         case "double precision": return "double";
+
+        case "float4":
         case "real": return "float";
+
         case "uuid": return "Guid";
+
         default: return "string";
     }
 }
+
 #>
 
 
