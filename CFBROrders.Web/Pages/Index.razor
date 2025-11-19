@@ -1,85 +1,71 @@
 ﻿@page "/"
+@layout MainLayout
 @inject ILogger<Index> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
-<h2>Users Table</h2>
+<h1>Welcome @username</h1>
 
-@if (usersList == null)
-{
-    <p><em>Loading...</em></p>
-}
-else if (usersList.Count == 0)
-{
-    <p>No users found.</p>
-}
-else
-{
-    <table class="table table-bordered table-striped">
-        <thead class="table-primary">
-            <tr>
-                <th>Id</th>
-                <th>UserName</th>
-                <th>Platform</th>
-                <th>Join Date</th>
-                <th>Current Team</th>
-                <th>Auth Key</th>
-                <th>Overall</th>
-                <th>Turns</th>
-                <th>Game Turns</th>
-                <th>Mvp</th>
-                <th>Streak</th>
-                <th>Awards</th>
-                <th>Role Id</th>
-                <th>Playing For</th>
-                <th>Past Teams</th>
-                <th>Awards Bak</th>
-                <th>Discord Id</th>
-                <th>Is Alt</th>
-                <th>Must Captcha</th>
-            </tr>
-        </thead>
-        @* <tbody>
-            @foreach (var user in usersList)
-            {
-                <tr>
-                    <td>@user.Id</td>
-                    <td>@user.Uname</td>
-                    <td>@user.Platform</td>
-                    <td>@user.JoinDate</td>
-                    <td>@user.CurrentTeam</td>
-                    <td>@user.AuthKey</td>
-                    <td>@user.Overall</td>
-                    <td>@user.Turns</td>
-                    <td>@user.GameTurns</td>
-                    <td>@user.Mvps</td>
-                    <td>@user.Streak</td>
-                    <td>@user.Awards</td>
-                    <td>@user.RoleId</td>
-                    <td>@user.PlayingFor</td>
-                    <td>@(user.PastTeams != null ? string.Join(",", user.PastTeams) : "")</td>
-                    <td>@user.AwardsBak</td>
-                    <td>@user.DiscordId</td>
-                    <td>@user.IsAlt</td>
-                    <td>@user.MustCaptcha</td>
-                </tr>
-            }
-        </tbody> *@
-    </table>
-}
+<span class="star"
+    style="color:@color; text-shadow:0 0 5px @shadowColor;">
+@(new string('✯', overall))
+</span>
+
+
+<p>Today is @DateTime.Today.ToLongDateString()</p>
+
+<p>Click one of the buttons below to choose your deployment, solider!</p>
+
+<RadzenButton Text="I want to Attack" 
+              style="@( $"background-color:{color}; color:{textColor}; border-radius:0;" )" />
+
+<RadzenButton Text="I want to Defend" 
+              style="@( $"background-color:{color}; color:{textColor}; border-radius:0;" )" />
+
+<RadzenButton Text="I want to manually pick my territory" 
+              style="@( $"background-color:{color}; color:{textColor}; border-radius:0;" )" />
+
+<RadzenButton Text="I don't care" 
+              style="@( $"background-color:{color}; color:{textColor}; border-radius:0;" )" />
+
 
 @code {
-    private List<User>? usersList;
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
-    protected override void OnInitialized()
+    private string username;
+    private string team;
+    private string color;
+    private int overall;
+
+    private string textColor;
+    private string shadowColor;
+
+    protected override async Task OnInitializedAsync()
     {
-        try
-        {
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to load users");
-            usersList = new List<User>();
-        }
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+
+        username = user.FindFirstValue("Username");
+        team = user.FindFirstValue("CurrentTeam");
+        overall = int.Parse(user.FindFirstValue("Overall"));
+        color = user.FindFirstValue("Color");
+
+        textColor = GetContrastColor(color);
+        shadowColor = textColor == "white" ? "white" : "black";
     }
+
+    private string GetContrastColor(string hexColor)
+    {
+        hexColor = hexColor.Replace("#", "");
+
+        int r = Convert.ToInt32(hexColor.Substring(0, 2), 16);
+        int g = Convert.ToInt32(hexColor.Substring(2, 2), 16);
+        int b = Convert.ToInt32(hexColor.Substring(4, 2), 16);
+
+        double luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+
+        return luminance > 150 ? "black" : "white";
+    }
+
 }

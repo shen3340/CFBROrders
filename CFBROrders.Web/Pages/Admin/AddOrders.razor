@@ -4,14 +4,14 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
-<h2>Add Orders</h2>
+<h1>Add Orders</h1>
 <hr />
 
 <p>
     @username playing for @team has 
-    <span class="star"
-      style="color:@color; text-shadow:0 0 5px @color;">
-    @(new string('✯', overall))
+<span class="star"
+    style="color:@color; text-shadow:0 0 5px @shadowColor;">
+@(new string('✯', overall))
 </span>
 </p>
 
@@ -159,6 +159,8 @@
     private int lastRoll = 2;
     private int starPower;
 
+    private string shadowColor;
+
     private int TotalDefendable => defendableTerritories.Sum(t => t.StarPowerAllocation);
 
     private int TotalAttackable => attackableTerritories.Sum(t => t.StarPowerAllocation);
@@ -182,6 +184,21 @@
 
         attackableTerritories =
             TerritoryService.GetAttackableTerritories(season, lastRoll, team);
+
+            shadowColor = GetContrastColor(color) == "white" ? "white" : "black";
+    }
+
+    private string GetContrastColor(string hexColor)
+    {
+        hexColor = hexColor.Replace("#", "");
+
+        int r = Convert.ToInt32(hexColor.Substring(0, 2), 16);
+        int g = Convert.ToInt32(hexColor.Substring(2, 2), 16);
+        int b = Convert.ToInt32(hexColor.Substring(4, 2), 16);
+
+        double luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+
+        return luminance > 150 ? "black" : "white";
     }
 
     private string GetNeighborDisplay(string neighborsJson)

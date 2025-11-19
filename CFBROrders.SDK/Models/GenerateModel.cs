@@ -12,7 +12,7 @@ using NPoco;
 //     Schema:                 `public`
 //     Include Views:          `true`
 //
-//     Last Generated:         `11/18/2025 8:02:09 PM`
+//     Last Generated:         `11/18/2025 8:19:47 PM`
 
 
 
@@ -709,7 +709,7 @@ namespace CFBROrders.SDK.Models
         [Column("must_captcha")]
         public bool? MustCaptcha { get; set; }
     } 
-} // end namespace
+}
 
 
 

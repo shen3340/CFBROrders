@@ -151,7 +151,7 @@ foreach (var table in tables)
 <#
 } // end foreach table
 #>
-} // end namespace
+}
 
 
 
