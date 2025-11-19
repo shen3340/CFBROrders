@@ -76,28 +76,66 @@ namespace CFBROrders.SDK.Models
 <#
 foreach (var table in tables)
 {
-    var cols = new List<(string name, string type, bool nullable)>();
+    var cols = new List<(string name, string type, bool nullable, bool autoIncrement)>();
+    var pkCols = new HashSet<string>();
 
+    // -------------------------
+    // Load Columns
+    // -------------------------
     using (var colCmd = new NpgsqlCommand($@"
-        SELECT column_name, udt_name, is_nullable
-        FROM information_schema.columns
-        WHERE table_name = '{table}'", conn))
+        SELECT c.column_name, c.udt_name, c.is_nullable,
+               (c.column_default LIKE 'nextval(%' OR c.is_identity = 'YES') as auto_inc
+        FROM information_schema.columns c
+        WHERE c.table_schema = 'public'
+          AND c.table_name = '{table}'
+        ORDER BY c.ordinal_position", conn))
     {
         using (var colReader = colCmd.ExecuteReader())
         {
             while (colReader.Read())
+{
+    string name = colReader.GetString(0);
+    string type = MapPostgresType(colReader.GetString(1));
+    bool nullable = colReader.GetString(2) == "YES";
+
+    bool autoIncrement = false;
+    if (!colReader.IsDBNull(3))
+        autoIncrement = colReader.GetBoolean(3);
+
+    cols.Add((name, type, nullable, autoIncrement));
+}
+
+        }
+    }
+
+    // -------------------------
+    // Load Primary Keys
+    // -------------------------
+    using (var pkCmd = new NpgsqlCommand($@"
+        SELECT kcu.column_name
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu
+             ON tc.constraint_name = kcu.constraint_name
+             AND tc.table_schema = kcu.table_schema
+        WHERE tc.constraint_type = 'PRIMARY KEY'
+          AND tc.table_schema = 'public'
+          AND tc.table_name = '{table}'", conn))
+    {
+        using (var pkReader = pkCmd.ExecuteReader())
+        {
+            while (pkReader.Read())
             {
-                string name = colReader.GetString(0);
-                string type = MapPostgresType(colReader.GetString(1));
-                bool nullable = colReader.GetString(2) == "YES";
-                cols.Add((name, type, nullable));
+                pkCols.Add(pkReader.GetString(0));
             }
         }
     }
 #>
     [NPoco.TableName("<#= table #>")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
+<#  if (pkCols.Count > 0) { 
+        bool singleAutoInc = pkCols.Count == 1 && cols.First(c => c.name == pkCols.First()).autoIncrement;
+#>
+    [NPoco.PrimaryKey("<#= string.Join(", ", pkCols) #>"<#= singleAutoInc ? ", AutoIncrement = true" : "" #>)]
+<#  } #>
     public partial class <#= Singularize(PascalCase(table)) #>
     {
 <#
@@ -105,15 +143,17 @@ foreach (var table in tables)
     {
 #>
         [Column("<#= c.name #>")]
-        public <#= c.type #><#= (c.nullable ? (c.type == "string" ? "?" : "?") : "") #> <#= PascalCase(c.name) #> { get; set; }
+        public <#= c.type #><#= (c.nullable && c.type != "string" ? "?" : "") #> <#= PascalCase(c.name) #> { get; set; }
 <#
-    }
+    } // end foreach cols
 #>
-    }
+    } 
 <#
-}
+} // end foreach table
 #>
-}
+} // end namespace
+
+
 
 <#+
 string PascalCase(string input)

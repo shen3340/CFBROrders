@@ -12,15 +12,13 @@ using NPoco;
 //     Schema:                 `public`
 //     Include Views:          `true`
 //
-//     Last Generated:         `11/17/2025 9:11:26 PM`
+//     Last Generated:         `11/18/2025 8:02:09 PM`
 
 
 
 namespace CFBROrders.SDK.Models
 {
     [NPoco.TableName("audit_log")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class AuditLog
     {
         [Column("id")]
@@ -32,27 +30,23 @@ namespace CFBROrders.SDK.Models
         [Column("timestamp")]
         public DateTime Timestamp { get; set; }
         [Column("data")]
-        public string? Data { get; set; }
+        public string Data { get; set; }
         [Column("cip")]
-        public string? Cip { get; set; }
+        public string Cip { get; set; }
         [Column("ua")]
-        public string? Ua { get; set; }
-    }
+        public string Ua { get; set; }
+    } 
     [NPoco.TableName("award_info")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class AwardInfo
     {
         [Column("id")]
         public int Id { get; set; }
         [Column("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [Column("info")]
-        public string? Info { get; set; }
-    }
+        public string Info { get; set; }
+    } 
     [NPoco.TableName("awards")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Award
     {
         [Column("id")]
@@ -62,11 +56,9 @@ namespace CFBROrders.SDK.Models
         [Column("award_id")]
         public int? AwardId { get; set; }
         [Column("award_date")]
-        public string? AwardDate { get; set; }
-    }
+        public string AwardDate { get; set; }
+    } 
     [NPoco.TableName("bans")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Ban
     {
         [Column("id")]
@@ -74,45 +66,39 @@ namespace CFBROrders.SDK.Models
         [Column("class")]
         public int? Class { get; set; }
         [Column("cip")]
-        public string? Cip { get; set; }
+        public string Cip { get; set; }
         [Column("uname")]
-        public string? Uname { get; set; }
+        public string Uname { get; set; }
         [Column("ua")]
-        public string? Ua { get; set; }
+        public string Ua { get; set; }
         [Column("reason")]
-        public string? Reason { get; set; }
-    }
+        public string Reason { get; set; }
+    } 
     [NPoco.TableName("captchas")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Captcha
     {
         [Column("id")]
         public int Id { get; set; }
         [Column("title")]
-        public string? Title { get; set; }
+        public string Title { get; set; }
         [Column("content")]
-        public string? Content { get; set; }
+        public string Content { get; set; }
         [Column("creation")]
         public DateTime? Creation { get; set; }
-    }
+    } 
     [NPoco.TableName("continuation_polls")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class ContinuationPoll
     {
         [Column("id")]
         public int Id { get; set; }
         [Column("question")]
-        public string? Question { get; set; }
+        public string Question { get; set; }
         [Column("incrment")]
         public int? Incrment { get; set; }
         [Column("turn_id")]
         public int? TurnId { get; set; }
-    }
+    } 
     [NPoco.TableName("continuation_responses")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class ContinuationResponse
     {
         [Column("id")]
@@ -123,54 +109,12 @@ namespace CFBROrders.SDK.Models
         public int? UserId { get; set; }
         [Column("response")]
         public bool? Response { get; set; }
-    }
-    [NPoco.TableName("discord_id_logging")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
-    public partial class DiscordIdLogging
-    {
-        [Column("season")]
-        public int? Season { get; set; }
-        [Column("day")]
-        public int? Day { get; set; }
-        [Column("territory")]
-        public int? Territory { get; set; }
-        [Column("user_id")]
-        public int? UserId { get; set; }
-        [Column("team")]
-        public int? Team { get; set; }
-        [Column("player")]
-        public int? Player { get; set; }
-        [Column("mvp")]
-        public bool? Mvp { get; set; }
-        [Column("uname")]
-        public string? Uname { get; set; }
-        [Column("turns")]
-        public int? Turns { get; set; }
-        [Column("mvps")]
-        public int? Mvps { get; set; }
-        [Column("platform")]
-        public string? Platform { get; set; }
-        [Column("discord_id")]
-        public long? DiscordId { get; set; }
-        [Column("tname")]
-        public string? Tname { get; set; }
-        [Column("power")]
-        public double? Power { get; set; }
-        [Column("weight")]
-        public double? Weight { get; set; }
-        [Column("stars")]
-        public int? Stars { get; set; }
-        [Column("current_stars")]
-        public int? CurrentStars { get; set; }
-    }
+    } 
     [NPoco.TableName("heat")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Heat
     {
         [Column("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [Column("season")]
         public int? Season { get; set; }
         [Column("day")]
@@ -179,14 +123,12 @@ namespace CFBROrders.SDK.Models
         public long? CumulativePlayers { get; set; }
         [Column("cumulative_power")]
         public double? CumulativePower { get; set; }
-    }
+    } 
     [NPoco.TableName("heat_full")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class HeatFull
     {
         [Column("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [Column("season")]
         public int? Season { get; set; }
         [Column("day")]
@@ -196,27 +138,23 @@ namespace CFBROrders.SDK.Models
         [Column("cumulative_power")]
         public double? CumulativePower { get; set; }
         [Column("owner")]
-        public string? Owner { get; set; }
-    }
+        public string Owner { get; set; }
+    } 
     [NPoco.TableName("logs")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Log
     {
         [Column("id")]
         public int Id { get; set; }
         [Column("route")]
-        public string? Route { get; set; }
+        public string Route { get; set; }
         [Column("query")]
-        public string? Query { get; set; }
+        public string Query { get; set; }
         [Column("payload")]
-        public string? Payload { get; set; }
+        public string Payload { get; set; }
         [Column("timestamp")]
         public DateTime? Timestamp { get; set; }
-    }
+    } 
     [NPoco.TableName("moves")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Move
     {
         [Column("season")]
@@ -234,13 +172,13 @@ namespace CFBROrders.SDK.Models
         [Column("mvp")]
         public bool? Mvp { get; set; }
         [Column("uname")]
-        public string? Uname { get; set; }
+        public string Uname { get; set; }
         [Column("turns")]
         public int? Turns { get; set; }
         [Column("mvps")]
         public int? Mvps { get; set; }
         [Column("tname")]
-        public string? Tname { get; set; }
+        public string Tname { get; set; }
         [Column("power")]
         public double? Power { get; set; }
         [Column("weight")]
@@ -249,10 +187,8 @@ namespace CFBROrders.SDK.Models
         public int? Stars { get; set; }
         [Column("current_stars")]
         public int? CurrentStars { get; set; }
-    }
+    } 
     [NPoco.TableName("odds")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Odd
     {
         [Column("ones")]
@@ -280,45 +216,42 @@ namespace CFBROrders.SDK.Models
         [Column("day")]
         public int? Day { get; set; }
         [Column("territory_name")]
-        public string? TerritoryName { get; set; }
+        public string TerritoryName { get; set; }
         [Column("team_name")]
-        public string? TeamName { get; set; }
+        public string TeamName { get; set; }
         [Column("color")]
-        public string? Color { get; set; }
+        public string Color { get; set; }
         [Column("secondary_color")]
-        public string? SecondaryColor { get; set; }
+        public string SecondaryColor { get; set; }
         [Column("tname")]
-        public string? Tname { get; set; }
+        public string Tname { get; set; }
         [Column("prev_owner")]
-        public string? PrevOwner { get; set; }
+        public string PrevOwner { get; set; }
         [Column("mvp")]
-        public string? Mvp { get; set; }
-    }
+        public string Mvp { get; set; }
+    } 
     [NPoco.TableName("order_allocations")]
     [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class OrderAllocation
     {
         [Column("id")]
         public int Id { get; set; }
+        [Column("season_id")]
+        public int? SeasonId { get; set; }
         [Column("turn_id")]
-        public int TurnId { get; set; }
+        public int? TurnId { get; set; }
         [Column("team_id")]
-        public int TeamId { get; set; }
+        public int? TeamId { get; set; }
         [Column("territory_id")]
         public int? TerritoryId { get; set; }
         [Column("owner_id")]
-        public int OwnerId { get; set; }
-        [Column("previous_owner_id")]
-        public int PreviousOwnerId { get; set; }
+        public int? OwnerId { get; set; }
         [Column("starpower_allocation")]
         public int? StarpowerAllocation { get; set; }
         [Column("tier")]
         public int? Tier { get; set; }
-    }
+    } 
     [NPoco.TableName("past_turns")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class PastTurn
     {
         [Column("id")]
@@ -345,18 +278,16 @@ namespace CFBROrders.SDK.Models
         public bool? Merc { get; set; }
         [Column("turn_id")]
         public int? TurnId { get; set; }
-    }
+    } 
     [NPoco.TableName("players")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Player
     {
         [Column("id")]
         public int? Id { get; set; }
         [Column("uname")]
-        public string? Uname { get; set; }
+        public string Uname { get; set; }
         [Column("platform")]
-        public string? Platform { get; set; }
+        public string Platform { get; set; }
         [Column("current_team")]
         public int? CurrentTeam { get; set; }
         [Column("overall")]
@@ -372,11 +303,9 @@ namespace CFBROrders.SDK.Models
         [Column("awards")]
         public int? Awards { get; set; }
         [Column("tname")]
-        public string? Tname { get; set; }
-    }
+        public string Tname { get; set; }
+    } 
     [NPoco.TableName("region_ownership")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class RegionOwnership
     {
         [Column("owner_count")]
@@ -389,28 +318,24 @@ namespace CFBROrders.SDK.Models
         public int? Season { get; set; }
         [Column("region")]
         public int? Region { get; set; }
-    }
+    } 
     [NPoco.TableName("regions")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Region
     {
         [Column("id")]
         public int Id { get; set; }
         [Column("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [Column("submap")]
         public int Submap { get; set; }
-    }
+    } 
     [NPoco.TableName("rollinfo")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Rollinfo
     {
         [Column("rollstarttime")]
-        public string? Rollstarttime { get; set; }
+        public string Rollstarttime { get; set; }
         [Column("rollendtime")]
-        public string? Rollendtime { get; set; }
+        public string Rollendtime { get; set; }
         [Column("chaosrerolls")]
         public int? Chaosrerolls { get; set; }
         [Column("chaosweight")]
@@ -420,11 +345,9 @@ namespace CFBROrders.SDK.Models
         [Column("season")]
         public int? Season { get; set; }
         [Column("json_agg")]
-        public string? JsonAgg { get; set; }
-    }
+        public string JsonAgg { get; set; }
+    } 
     [NPoco.TableName("statistics")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Statistic
     {
         [Column("turn_id")]
@@ -460,15 +383,13 @@ namespace CFBROrders.SDK.Models
         [Column("fives")]
         public int? Fives { get; set; }
         [Column("tname")]
-        public string? Tname { get; set; }
+        public string Tname { get; set; }
         [Column("logo")]
-        public string? Logo { get; set; }
+        public string Logo { get; set; }
         [Column("regions")]
         public long? Regions { get; set; }
-    }
+    } 
     [NPoco.TableName("stats")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Stat
     {
         [Column("team")]
@@ -499,10 +420,8 @@ namespace CFBROrders.SDK.Models
         public int? Fives { get; set; }
         [Column("turn_id")]
         public int? TurnId { get; set; }
-    }
+    } 
     [NPoco.TableName("team_player_moves")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class TeamPlayerMove
     {
         [Column("id")]
@@ -512,63 +431,57 @@ namespace CFBROrders.SDK.Models
         [Column("day")]
         public int? Day { get; set; }
         [Column("team")]
-        public string? Team { get; set; }
+        public string Team { get; set; }
         [Column("player")]
-        public string? Player { get; set; }
+        public string Player { get; set; }
         [Column("stars")]
         public int? Stars { get; set; }
         [Column("mvp")]
         public bool? Mvp { get; set; }
         [Column("territory")]
-        public string? Territory { get; set; }
+        public string Territory { get; set; }
         [Column("regularteam")]
-        public string? Regularteam { get; set; }
+        public string Regularteam { get; set; }
         [Column("weight")]
         public double? Weight { get; set; }
         [Column("power")]
         public double? Power { get; set; }
         [Column("multiplier")]
         public double? Multiplier { get; set; }
-    }
+    } 
     [NPoco.TableName("teams")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Team
     {
         [Column("id")]
         public int Id { get; set; }
         [Column("tname")]
-        public string? Tname { get; set; }
+        public string Tname { get; set; }
         [Column("tshortname")]
-        public string? Tshortname { get; set; }
+        public string Tshortname { get; set; }
         [Column("creation_date")]
         public DateTime? CreationDate { get; set; }
         [Column("color_1")]
-        public string? Color1 { get; set; }
+        public string Color1 { get; set; }
         [Column("color_2")]
-        public string? Color2 { get; set; }
+        public string Color2 { get; set; }
         [Column("logo")]
-        public string? Logo { get; set; }
+        public string Logo { get; set; }
         [Column("seasons")]
         public int[]? Seasons { get; set; }
         [Column("respawn_count")]
         public int RespawnCount { get; set; }
-    }
+    } 
     [NPoco.TableName("territories")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Territory
     {
         [Column("id")]
         public int Id { get; set; }
         [Column("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [Column("region")]
         public int? Region { get; set; }
-    }
+    } 
     [NPoco.TableName("territory_adjacency")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class TerritoryAdjacency
     {
         [Column("id")]
@@ -578,15 +491,13 @@ namespace CFBROrders.SDK.Models
         [Column("adjacent_id")]
         public int? AdjacentId { get; set; }
         [Column("note")]
-        public string? Note { get; set; }
+        public string Note { get; set; }
         [Column("min_turn")]
         public int? MinTurn { get; set; }
         [Column("max_turn")]
         public int? MaxTurn { get; set; }
-    }
+    } 
     [NPoco.TableName("territory_neighbor_history")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class TerritoryNeighborHistory
     {
         [Column("turn_id")]
@@ -594,11 +505,9 @@ namespace CFBROrders.SDK.Models
         [Column("id")]
         public int? Id { get; set; }
         [Column("neighbors")]
-        public string? Neighbors { get; set; }
-    }
+        public string Neighbors { get; set; }
+    } 
     [NPoco.TableName("territory_ownership")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class TerritoryOwnership
     {
         [Column("id")]
@@ -619,10 +528,8 @@ namespace CFBROrders.SDK.Models
         public int? TurnId { get; set; }
         [Column("is_respawn")]
         public bool IsRespawn { get; set; }
-    }
+    } 
     [NPoco.TableName("territory_ownership_with_neighbors")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class TerritoryOwnershipWithNeighbor
     {
         [Column("territory_id")]
@@ -632,19 +539,17 @@ namespace CFBROrders.SDK.Models
         [Column("season")]
         public int? Season { get; set; }
         [Column("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [Column("tname")]
-        public string? Tname { get; set; }
+        public string Tname { get; set; }
         [Column("region")]
         public int? Region { get; set; }
         [Column("region_name")]
-        public string? RegionName { get; set; }
+        public string RegionName { get; set; }
         [Column("neighbors")]
-        public string? Neighbors { get; set; }
-    }
+        public string Neighbors { get; set; }
+    } 
     [NPoco.TableName("territory_ownership_without_neighbors")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class TerritoryOwnershipWithoutNeighbor
     {
         [Column("territory_id")]
@@ -654,21 +559,19 @@ namespace CFBROrders.SDK.Models
         [Column("season")]
         public int? Season { get; set; }
         [Column("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
         [Column("owner")]
-        public string? Owner { get; set; }
+        public string Owner { get; set; }
         [Column("prev_owner")]
-        public string? PrevOwner { get; set; }
+        public string PrevOwner { get; set; }
         [Column("timestamp")]
         public DateTime? Timestamp { get; set; }
         [Column("random_number")]
         public double? RandomNumber { get; set; }
         [Column("mvp")]
-        public string? Mvp { get; set; }
-    }
+        public string Mvp { get; set; }
+    } 
     [NPoco.TableName("territory_stats")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class TerritoryStat
     {
         [Column("team")]
@@ -695,10 +598,8 @@ namespace CFBROrders.SDK.Models
         public double? TerritoryPower { get; set; }
         [Column("turn_id")]
         public int? TurnId { get; set; }
-    }
+    } 
     [NPoco.TableName("turninfo")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Turninfo
     {
         [Column("id")]
@@ -724,11 +625,9 @@ namespace CFBROrders.SDK.Models
         [Column("allornothingenabled")]
         public bool? Allornothingenabled { get; set; }
         [Column("map")]
-        public string? Map { get; set; }
-    }
+        public string Map { get; set; }
+    } 
     [NPoco.TableName("turns")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Turn
     {
         [Column("id")]
@@ -755,10 +654,8 @@ namespace CFBROrders.SDK.Models
         public bool? Merc { get; set; }
         [Column("turn_id")]
         public int? TurnId { get; set; }
-    }
+    } 
     [NPoco.TableName("userorders")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class Userorder
     {
         [Column("id")]
@@ -769,10 +666,8 @@ namespace CFBROrders.SDK.Models
         public int TerritoryId { get; set; }
         [Column("starpower")]
         public int Starpower { get; set; }
-    }
+    } 
     [NPoco.TableName("users")]
-    [NPoco.PrimaryKey("id", AutoIncrement = true)]
-
     public partial class User
     {
         [Column("id")]
@@ -786,7 +681,7 @@ namespace CFBROrders.SDK.Models
         [Column("current_team")]
         public int CurrentTeam { get; set; }
         [Column("auth_key")]
-        public string? AuthKey { get; set; }
+        public string AuthKey { get; set; }
         [Column("overall")]
         public int? Overall { get; set; }
         [Column("turns")]
@@ -813,6 +708,8 @@ namespace CFBROrders.SDK.Models
         public bool? IsAlt { get; set; }
         [Column("must_captcha")]
         public bool? MustCaptcha { get; set; }
-    }
-}
+    } 
+} // end namespace
+
+
 

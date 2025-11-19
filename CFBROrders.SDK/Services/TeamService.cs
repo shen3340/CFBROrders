@@ -71,7 +71,6 @@ namespace CFBROrders.SDK.Services
             return teamId;
         }
 
-
         public string GetTeamColorByTeamId(int id)
         {
             Result.Reset();
@@ -97,6 +96,7 @@ namespace CFBROrders.SDK.Services
             return color;
 
         }
+
         public int GetTeamStarPowerForTurn(string tname, int season, int day)
         {
             Result.Reset();

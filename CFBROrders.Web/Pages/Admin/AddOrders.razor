@@ -22,7 +22,6 @@
 <h3>Defendable Territories</h3>
 <RadzenDataGrid Data="@defendableTerritories"
                 TItem="TerritoryOwnershipWithNeighbor"
-                class="w-100"
                 ShowPagingSummary="true"
                 AllowFiltering="true"
                 AllowSorting="true"
@@ -56,17 +55,17 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn Title="Star Power">
+        <RadzenDataGridColumn Property="StarPowerAllocation" Title="Star Power">
             <Template Context="territory">
                 <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
                                TValue="int"
                                Style="width:100%;"
                                Min="0"
-                               Max="@starPower" />
+                               Max="@starPower"/>
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Tier">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
             <Template Context="territory">
                 <RadzenDropDown @bind-Value="territory.Tier"
                                 Data="@tierOptions"
@@ -77,34 +76,44 @@
 
     </Columns>
 </RadzenDataGrid>
+
+<p>
+    Defending Allocation Total: <strong>@TotalDefendable</strong>
+</p>
+
 
 <br />
 
 <h3>Attackable Territories</h3>
-<RadzenDataGrid Data="@attackableTerritories" TItem="TerritoryOwnershipWithNeighbor"
-                ShowPagingSummary="true" AllowFiltering="true"
-                AllowSorting="true" AllowPaging="true" PageSize="@pageSize" PageSizeOptions="@pagingOptions">
+<RadzenDataGrid Data="@attackableTerritories" 
+                TItem="TerritoryOwnershipWithNeighbor"
+                ShowPagingSummary="true" 
+                AllowFiltering="true"
+                AllowSorting="true" 
+                AllowPaging="true" 
+                PageSize="@pageSize" 
+                PageSizeOptions="@pagingOptions">
     <Columns>
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Territory">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory">
             <Template Context="n">@n.Name</Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Owner">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tname" Title="Owner">
             <Template Context="n">@n.Tname</Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn Title="Star Power">
+        <RadzenDataGridColumn Property="StarPowerAllocation" Title="Star Power">
             <Template Context="territory">
                 <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
                                TValue="int"
                                Style="width:100%;"
                                Min="0"
-                               Max="@starPower" />
+                               Max="@starPower"/>
             </Template>
         </RadzenDataGridColumn>
 
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Tier">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
             <Template Context="territory">
                 <RadzenDropDown @bind-Value="territory.Tier"
                                 Data="@tierOptions"
@@ -115,6 +124,15 @@
 
     </Columns>
 </RadzenDataGrid>
+
+<p>
+    Attacking Allocation Total: <strong>@TotalAttackable</strong>
+</p>
+
+<p style="font-size:1.2em;">
+    Total Star Power Used: <strong>@TotalStarPowerUsed</strong> / @starPower
+</p>
+
 
 <br />
 <RadzenButton Text="Submit Orders"
@@ -140,6 +158,12 @@
     private int season = 5;
     private int lastRoll = 2;
     private int starPower;
+
+    private int TotalDefendable => defendableTerritories.Sum(t => t.StarPowerAllocation);
+
+    private int TotalAttackable => attackableTerritories.Sum(t => t.StarPowerAllocation);
+
+    private int TotalStarPowerUsed => TotalDefendable + TotalAttackable;
 
     protected override async Task OnInitializedAsync()
     {
@@ -180,50 +204,36 @@
 
     private async Task SubmitOrders()
     {
-        // Merge both lists
+        var userTeamId = TeamService.GetTeamIdByTeamName(team);
+
         var allTerritories = defendableTerritories.Concat(attackableTerritories).ToList();
 
-        // Filter entries that actually have data
+        var ownerTeamIds = allTerritories
+            .Select(t => t.Tname)
+            .Distinct()
+            .ToDictionary(n => n, n => TeamService.GetTeamIdByTeamName(n));
+
         var allocations = allTerritories
+            .Where(t => t.StarPowerAllocation > 0)
             .Select(t => new OrderAllocation
             {
-                TurnId = lastRoll,
-                TeamId = TeamService.GetTeamIdByTeamName(team),
+                TurnId = lastRoll + 1,
+                TeamId = userTeamId,
                 TerritoryId = t.TerritoryId,
-                OwnerId = 4,
-                PreviousOwnerId = 4,
+                OwnerId = ownerTeamIds[t.Tname!],
                 StarpowerAllocation = t.StarPowerAllocation,
                 Tier = t.Tier
             })
             .ToList();
 
-        // Validate star power limit
         var total = allocations.Sum(x => x.StarpowerAllocation ?? 0);
 
-        // if (total > starPower)
-        // {
-        //     NotificationService.Notify(new NotificationMessage
-        //     {
-        //         Severity = NotificationSeverity.Error,
-        //         Summary = "Too much star power",
-        //         Detail = $"You allocated {total} but you only have {starPower}."
-        //     });
-        //     return;
-        // }
 
-        // Save to database
         var result = OrderAllocationService.InsertOrderAllocations(allocations);
 
         if (result.IsError)
         {
             Navigation.NavigateTo("/error");
         }
-
-        // NotificationService.Notify(new NotificationMessage
-        // {
-        //     Severity = NotificationSeverity.Success,
-        //     Summary = "Orders submitted",
-        //     Detail = "Your orders were saved."
-        // });
     }
 }

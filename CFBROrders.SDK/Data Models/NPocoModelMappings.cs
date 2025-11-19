@@ -13,7 +13,6 @@ namespace CFBROrders.SDK.Data_Models
                 x.Column(y => y.Tier).Result();
                 x.Column(y => y.StarPowerAllocation).Result();
             });
-
         }
     }
 }
