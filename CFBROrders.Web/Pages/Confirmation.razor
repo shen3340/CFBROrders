@@ -1,0 +1,45 @@
+﻿@page "/confirmation/{territory}"
+@layout MainLayout
+@inject ILogger<Index> _logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
+<h1>Confirmation</h1>
+
+<h2>Thank you, @username</h2>
+
+<p> You chose </p>
+
+<h2>@territory</h2>
+
+<p>Thank you for confirming your order. Good luck out there, soldier.</p>
+
+<p>Remember to submit your move on <a href='https://dough.collegefootballrisk.com/#MyMove'>CollegeFootballRisk.com</a>.</p>
+
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    [Parameter]
+    public string territory { get; set; }
+
+    private string username;
+    private string team;
+    private string color;
+    private string textColor;
+    private string shadowColor;
+    private int overall;
+    private int turn_id = 3;
+    private int season = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+
+        username = user.FindFirstValue("Username");
+        team = user.FindFirstValue("CurrentTeam");
+        overall = int.Parse(user.FindFirstValue("Overall"));
+    }
+}
