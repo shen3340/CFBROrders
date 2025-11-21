@@ -5,7 +5,9 @@ using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using CFBROrders.SDK.Services;
+using CFBROrders.Web.Auth;
 using CFBROrders.Web.Data;
+using CFBROrders.Web.Endpoints;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -15,9 +17,6 @@ using NLog.Web;
 using Radzen;
 using System.Security.Claims;
 using System.Text.Json;
-
-var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
-logger.Debug("init main");
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("CFBROrdersConnectionString")
@@ -37,103 +36,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromHours(1);
         options.SlidingExpiration = true;
     })
-    .AddOAuth("Discord", options =>
-    {
-        var discordAuth = builder.Configuration.GetSection("Authentication:Discord");
-        options.ClientId = discordAuth["ClientId"]!;
-        options.ClientSecret = discordAuth["ClientSecret"]!;
-        options.CallbackPath = discordAuth["CallbackPath"];
-
-        options.AuthorizationEndpoint = "https://discord.com/api/oauth2/authorize";
-        options.TokenEndpoint = "https://discord.com/api/oauth2/token";
-        options.UserInformationEndpoint = "https://discord.com/api/users/@me";
-        options.Scope.Add("identify");
-        options.SaveTokens = true;
-
-        options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
-        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
-
-        options.Events = new OAuthEvents
-        {
-            OnCreatingTicket = async context =>
-            {
-                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-                request.Headers.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
-                var response = await context.Backchannel.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-
-                var json = await response.Content.ReadAsStringAsync();
-                using var user = System.Text.Json.JsonDocument.Parse(json);
-                context.RunClaimActions(user.RootElement);
-            },
-            OnRemoteFailure = context =>
-            {
-                // If users click cancel within discord Oauth2
-                context.Response.Redirect("/autherror?error=discord-auth-failed");
-                context.HandleResponse(); 
-                return Task.CompletedTask;
-            }
-        };
-    })
-    .AddOAuth("Reddit", options =>
-    {
-        var redditAuth = builder.Configuration.GetSection("Authentication:Reddit");
-        options.ClientId = redditAuth["ClientId"]!;
-        options.ClientSecret = redditAuth["ClientSecret"]!;
-        options.CallbackPath = redditAuth["CallbackPath"];
-
-        options.AuthorizationEndpoint = "https://www.reddit.com/api/v1/authorize";
-        options.TokenEndpoint = "https://www.reddit.com/api/v1/access_token";
-        options.UserInformationEndpoint = "https://oauth.reddit.com/api/v1/me";
-        options.Scope.Add("identity");
-        options.SaveTokens = true;
-
-        options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
-        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
-
-        var credentials = Convert.ToBase64String(
-            System.Text.Encoding.ASCII.GetBytes($"{redditAuth["ClientId"]}:{redditAuth["ClientSecret"]}"));
-
-        var handler = new HttpClientHandler();
-        var httpClient = new HttpClient(handler);
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "CFBROrders/0.1 by Disastrous_Rush4196");
-        httpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
-
-        options.Backchannel = httpClient;
-
-        options.Events = new OAuthEvents
-        {
-            OnCreatingTicket = async context =>
-            {
-                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-                request.Headers.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
-                request.Headers.Add("User-Agent", "CFBROrders/0.1 by Disastrous_Rush4196");
-
-                var response = await context.Backchannel.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-
-                var json = await response.Content.ReadAsStringAsync();
-                using var user = System.Text.Json.JsonDocument.Parse(json);
-                context.RunClaimActions(user.RootElement);
-            },
-            OnRemoteFailure = context =>
-            {
-                // If users click cancel within reddit Oauth2
-                context.Response.Redirect("/autherror?error=reddit-auth-failed");
-                context.HandleResponse();
-                return Task.CompletedTask;
-            },
-
-            OnRedirectToAuthorizationEndpoint = context =>
-            {
-                context.Response.Redirect(context.RedirectUri + "&duration=temporary");
-                return Task.CompletedTask;
-            }
-        };
-    });
+    .AddDiscordAuth(builder.Configuration)
+    .AddRedditAuth(builder.Configuration);
 
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
@@ -154,6 +58,9 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+var logger = NLog.LogManager.GetCurrentClassLogger();
+logger.Debug("init main");
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/error");
@@ -166,196 +73,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Discord Authentication
-app.MapGet("/auth-discord", async ctx =>
-{
-    var returnUrl = ctx.Request.Query["ReturnUrl"].FirstOrDefault() ?? "/";
-    await ctx.ChallengeAsync("Discord", new AuthenticationProperties { RedirectUri = "/signin-discord?ReturnUrl=" + returnUrl });
-});
-
-app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, ITeamService TeamService) =>
-{
-    var logger = NLog.LogManager.GetCurrentClassLogger();
-
-    var result = await ctx.AuthenticateAsync("Discord");
-
-    // if Oauth failed completely
-    if (!result.Succeeded || result.Principal == null)
-    {
-        logger.Error("Discord OAuth failed: no principal or authentication did not succeed.");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=discord-auth-failed");
-        return;
-    }
-
-    var discordId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
-    var username = result.Principal.FindFirstValue(ClaimTypes.Name);
-
-    // if there's no discord id
-    if (discordId == null)
-    {
-        logger.Error($"Discord OAuth failed: missing Discord ID for username: {username}.");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=invalid_discord_id");
-        return;
-    }
-
-    // if discord id changed how the ID is formatted
-    if (!long.TryParse(discordId, out var discordLong))
-    {
-        logger.Error($"Discord OAuth failed: invalid Discord ID format: {discordId} for username: {username}.");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=invalid-discord-id");
-        return;
-    }
-
-    var user = UserService.GetUserByPlatformAndUsername("discord", username);
-
-    // if user hasn't already made a CFBR account
-    if (user == null)
-    {
-        logger.Error($"Discord OAuth failed: User doesn't have an existing CFBR account with discordId: {discordId} and username {username}");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=not-registered");
-        return;
-    }
-
-    // verify that user is on an active team
-    if (user.CurrentTeam == -1)
-    {
-        logger.Error($"Discord OAuth failed: Username {username} isn't on an active team");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=team-not-active");
-        return;
-    }
-
-    var claims = new List<Claim>
-    {
-        new ("UserId", user.Id.ToString()),
-        new ("Username", user.Uname ?? ""),
-        new ("Platform", user.Platform ?? ""),
-        new ("CurrentTeam", TeamService.GetTeamNameByTeamId(user.CurrentTeam)),
-        new ("Overall", UserService.GetOverallByUserId(user.Id).ToString()),
-        new ("Color", TeamService.GetTeamColorByTeamId(user.CurrentTeam))
-
-    };
-
-    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-    var principal = new ClaimsPrincipal(identity);
-
-    await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-    ctx.Response.Redirect("/");
-});
-
-// Reddit Authentication
-app.MapGet("/auth-reddit", async ctx =>
-{
-    var returnUrl = ctx.Request.Query["ReturnUrl"].FirstOrDefault() ?? "/";
-    await ctx.ChallengeAsync("Reddit", new AuthenticationProperties { RedirectUri = "/signin-reddit?ReturnUrl=" + returnUrl });
-});
-
-app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, ITeamService TeamService) =>
-{
-    var logger = NLog.LogManager.GetCurrentClassLogger();
-
-    var result = await ctx.AuthenticateAsync("Reddit");
-
-    // if Oauth failed completely
-    if (!result.Succeeded || result.Principal == null)
-    {
-        logger.Error("Reddit OAuth failed: no principal or authentication did not succeed.");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=reddit-auth-failed");
-        return;
-    }
-
-    var redditId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
-    var username = result.Principal.FindFirstValue(ClaimTypes.Name);
-
-    // if there's no reddit id
-    if (redditId == null)
-    {
-        logger.Error($"Reddit OAuth failed: missing Reddit ID for username: {username}.");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=missingid");
-        return;
-    }
-
-    // Reddit IDs are strings (not numeric), but log in the same style anyway
-    if (string.IsNullOrWhiteSpace(redditId))
-    {
-        logger.Error($"Reddit OAuth failed: invalid Reddit ID format: {redditId} for username: {username}.");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=invalid_reddit_id");
-        return;
-    }
-
-    var user = UserService.GetUserByPlatformAndUsername("reddit", username);
-
-    // if the user hasn't already made a CFBR account
-    if (user == null) 
-    {
-        logger.Error($"Reddit OAuth failed: User doesn't have an existing CFBR account with redditId: {redditId} and username {username}");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=not-registered");
-        return;
-    }
-
-    // verify that user is on an active team
-    if (user.CurrentTeam == -1)
-    {
-        logger.Error($"Reddit OAuth failed: Username {username} isn't on an active team");
-
-        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        ctx.Response.Redirect("/autherror?error=team-not-active");
-        return;
-    }
-
-    var claims = new List<Claim>
-    {
-        new ("UserId", user.Id.ToString()),
-        new ("Username", user.Uname ?? ""),
-        new ("Platform", user.Platform ?? ""),
-        new ("CurrentTeam", TeamService.GetTeamNameByTeamId(user.CurrentTeam)),
-        new ("Overall", UserService.GetOverallByUserId(user.Id).ToString()),
-        new ("Color", TeamService.GetTeamColorByTeamId(user.CurrentTeam))
-
-    };
-
-    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-    var principal = new ClaimsPrincipal(identity);
-
-    await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-    ctx.Response.Redirect("/");
-});
-
-// Logout
-app.MapGet("/logout", async ctx =>
-{
-    await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    ctx.Response.Redirect("/login");
-});
+// External API Calls 
+app.MapDiscordAuth();
+app.MapRedditAuth();
+app.MapLogout();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

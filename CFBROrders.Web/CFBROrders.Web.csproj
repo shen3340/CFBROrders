@@ -35,10 +35,7 @@
   </ItemGroup>
 
 	<Target Name="CopyAppSettingsTemplate" BeforeTargets="BeforeBuild">
-		<Copy
-			SourceFiles="appsettingsTemplate.json"
-			DestinationFiles="appsettings.json"
-			Condition="!Exists('appsettings.json')" />
+		<Copy SourceFiles="appsettingsTemplate.json" DestinationFiles="appsettings.json" Condition="!Exists('appsettings.json')" />
 	</Target>
 
 </Project>
