@@ -41,4 +41,11 @@
     </Compile>
   </ItemGroup>
 
+	<Target Name="CopyAppConfigTemplate" BeforeTargets="BeforeBuild">
+		<Copy
+			SourceFiles="AppTemplate.config"
+			DestinationFiles="App.config"
+			Condition="!Exists('App.config')" />
+	</Target>
+
 </Project>

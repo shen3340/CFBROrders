@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -33,5 +33,12 @@
   <ItemGroup>
     <ProjectReference Include="..\CFBROrders.SDK\CFBROrders.SDK.csproj" />
   </ItemGroup>
+
+	<Target Name="CopyAppSettingsTemplate" BeforeTargets="BeforeBuild">
+		<Copy
+			SourceFiles="appsettingsTemplate.json"
+			DestinationFiles="appsettings.json"
+			Condition="!Exists('appsettings.json')" />
+	</Target>
 
 </Project>
