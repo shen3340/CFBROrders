@@ -1,0 +1,33 @@
+name: FTP Deploy
+
+on:
+  push:
+    branches:
+      - master 
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'  
+
+      - name: Publish Blazor Server
+        run: dotnet publish CFBROrders.Web/CFBROrders.Web.csproj -c Release -o ./publish
+
+      - name: Deploy to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./publish/
+          server-dir: ${{ secrets.FTP_PATH }}
+          dry-run: false
+          git-ftp-args: --only-changed
