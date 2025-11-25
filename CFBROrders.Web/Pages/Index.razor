@@ -23,10 +23,12 @@
               Click="@ShowDefendChoices" />
 
 <RadzenButton Text="I want to manually pick my territory"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")" />
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+              Click="@ShowManualSelection" />
 
-<RadzenButton Text="I don't care"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")" />
+<RadzenButton Text="I don't care'"
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+              Click="@ShowIndifferentChoices" />
 
 @if (showDefend)
 {
@@ -56,13 +58,45 @@
     </ul>
 }
 
+@if (showManual)
+{
+    <ul>
+        @foreach (var territory in manual)
+        {
+            <br />
+            <RadzenButton Text="@territory.Name"
+                Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+                Click="@(args => SubmitOrUpdateUserOrder(territory))" />
+        }
+    </ul>
+}
+
+
+@if (showIndifferent)
+{
+    <ul>
+        @foreach (var territory in randomIndifferent)
+        {
+            <br />
+            <RadzenButton Text="@territory.Name"
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+              Click="@(args => SubmitOrUpdateUserOrder(territory))" />
+
+        }
+    </ul>
+}
+
 @code {
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; }
 
     private List<TerritoryOwnershipWithNeighbor> randomDefend = new();
     private List<TerritoryOwnershipWithNeighbor> randomAttack = new();
+    private List<TerritoryOwnershipWithNeighbor> randomIndifferent = new();
+    private List<TerritoryOwnershipWithNeighbor> manual = new();
 
+    private bool showManual = false;
+    private bool showIndifferent = false;
     private bool showDefend = false;
     private bool showAttack = false;
     private int turn_id = 3;
@@ -93,6 +127,39 @@
         showAttack = true;
         showDefend = false;
     }
+
+    private async Task ShowIndifferentChoices()
+    {
+        var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, CurrentUser.Team);
+        var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, CurrentUser.Team);
+
+        var allOptions = defendable.Concat(attackable).ToList();
+
+        randomIndifferent = allOptions
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(3)
+            .ToList();
+
+        showAttack = false;
+        showDefend = false;
+        showIndifferent = true;
+    }
+
+    private async Task ShowManualSelection()
+    {
+        var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, CurrentUser.Team);
+        var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, CurrentUser.Team);
+
+        manual = defendable.Concat(attackable)
+            .OrderBy(t => t.Name) 
+            .ToList();
+
+        showAttack = false;
+        showDefend = false;
+        showIndifferent = false;
+        showManual = true;
+    }
+
 
     private async Task SubmitOrUpdateUserOrder(TerritoryOwnershipWithNeighbor territory)
     {

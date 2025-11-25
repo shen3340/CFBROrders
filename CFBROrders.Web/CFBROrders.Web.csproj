@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>f671552c-9332-4758-8952-52c974339035</UserSecretsId>
 
-		<EnableDefaultContentItems>false</EnableDefaultContentItems>
+		<EnableDefaultContentItems>true</EnableDefaultContentItems>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -24,6 +24,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
 		<PackageReference Include="NLog" Version="6.0.6" />
 		<PackageReference Include="NLog.Schema" Version="6.0.6" />
@@ -37,12 +38,10 @@
 		<ProjectReference Include="..\CFBROrders.SDK\CFBROrders.SDK.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Content Include="wwwroot\**\*" CopyToPublishDirectory="Always" />
-	</ItemGroup>
-
 	<Target Name="CopyAppSettingsTemplate" BeforeTargets="BeforeBuild">
-		<Copy SourceFiles="appsettingsTemplate.json" DestinationFiles="appsettings.json" Condition="!Exists('appsettings.json')" />
+		<Copy SourceFiles="appsettingsTemplate.json"
+			  DestinationFiles="appsettings.json"
+			  Condition="!Exists('appsettings.json')" />
 	</Target>
 
 </Project>
