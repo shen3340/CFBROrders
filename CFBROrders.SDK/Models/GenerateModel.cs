@@ -12,7 +12,7 @@ using NPoco;
 //     Schema:                 `public`
 //     Include Views:          `true`
 //
-//     Last Generated:         `11/26/2025 1:30:42 PM`
+//     Last Generated:         `11/28/2025 10:54:59 AM`
 
 
 
@@ -246,12 +246,18 @@ namespace CFBROrders.SDK.Models
         public int? TerritoryId { get; set; }
         [Column("owner_id")]
         public int? OwnerId { get; set; }
-        [Column("starpower_allocation")]
-        public int? StarpowerAllocation { get; set; }
+        [Column("starpower_allocated")]
+        public int? StarpowerAllocated { get; set; }
         [Column("tier")]
         public int? Tier { get; set; }
         [Column("allocater_username")]
         public string AllocaterUsername { get; set; }
+        [Column("starpower_used")]
+        public int? StarpowerUsed { get; set; }
+        [Column("starpower_remaining")]
+        public int? StarpowerRemaining { get; set; }
+        [Column("is_territory_full")]
+        public bool? IsTerritoryFull { get; set; }
     } 
     [NPoco.TableName("past_turns")]
     public partial class PastTurn
