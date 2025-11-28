@@ -15,80 +15,41 @@
 <p>Click one of the buttons below to choose your deployment, solider!</p>
 
 <RadzenButton Text="I want to Attack"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+              Style="@ButtonStyle"
               Click="@ShowAttackChoices" />
 
 <RadzenButton Text="I want to Defend"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+              Style="@ButtonStyle"
               Click="@ShowDefendChoices" />
 
 <RadzenButton Text="I want to manually pick my territory"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+              Style="@ButtonStyle"
               Click="@ShowManualSelection" />
 
-<RadzenButton Text="I don't care'"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+<RadzenButton Text="I don't care"
+              Style="@ButtonStyle"
               Click="@ShowIndifferentChoices" />
 
-@if (showDefend)
-{
-    <ul>
-        @foreach (var territory in randomDefend)
-        {
-            <br />
-           <RadzenButton Text="@territory.Name"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
-              Click="@(args => SubmitOrUpdateUserOrder(territory))" />
+@{
+    var viewList = CurrentView switch
+    {
+        ViewMode.Defend => randomDefend,
+        ViewMode.Attack => randomAttack,
+        ViewMode.Manual => manual,
+        ViewMode.Indifferent => randomIndifferent,
+        _ => null
+    };
 
-        }
-    </ul>
+    if (viewList != null)
+    {
+        @RenderTerritoryButtons(viewList);
+    }
 }
-
-@if (showAttack)
-{
-    <ul>
-        @foreach (var territory in randomAttack)
-        {
-            <br />
-            <RadzenButton Text="@territory.Name"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
-              Click="@(args => SubmitOrUpdateUserOrder(territory))" />
-
-        }
-    </ul>
-}
-
-@if (showManual)
-{
-    <ul>
-        @foreach (var territory in manual)
-        {
-            <br />
-            <RadzenButton Text="@territory.Name"
-                Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
-                Click="@(args => SubmitOrUpdateUserOrder(territory))" />
-        }
-    </ul>
-}
-
-
-@if (showIndifferent)
-{
-    <ul>
-        @foreach (var territory in randomIndifferent)
-        {
-            <br />
-            <RadzenButton Text="@territory.Name"
-              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
-              Click="@(args => SubmitOrUpdateUserOrder(territory))" />
-
-        }
-    </ul>
-}
-
 @code {
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; }
+
+    private string ButtonStyle => $"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;";
 
     [Parameter, SupplyParameterFromQuery]
     public string? edit { get; set; }
@@ -98,10 +59,8 @@
     private List<TerritoryOwnershipWithNeighbor> randomIndifferent = new();
     private List<TerritoryOwnershipWithNeighbor> manual = new();
 
-    private bool showManual = false;
-    private bool showIndifferent = false;
-    private bool showDefend = false;
-    private bool showAttack = false;
+    private enum ViewMode { None, Attack, Defend, Manual, Indifferent }
+    private ViewMode CurrentView = ViewMode.None;
     private int turn_id;
     private int season;
 
@@ -124,6 +83,18 @@
         }
     }
 
+    private RenderFragment RenderTerritoryButtons(List<TerritoryOwnershipWithNeighbor> territoryList) => __builder =>
+    {
+        @foreach (var territory in territoryList)
+        {
+            <div style="margin-top:10px;">
+                <RadzenButton Text="@territory.Name"
+                                Style="@ButtonStyle"
+                                Click="@(args => SubmitOrUpdateUserOrder(territory))" />
+            </div>
+        }
+    };
+
     private async Task ShowDefendChoices()
     {
         var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, CurrentUser.Team);
@@ -133,10 +104,7 @@
             .Take(3)
             .ToList();
 
-        showDefend = true;
-        showAttack = false;
-        showManual = false;
-        showIndifferent = false;
+        CurrentView = ViewMode.Defend;
     }
 
     private async Task ShowAttackChoices()
@@ -148,10 +116,7 @@
             .Take(3)
             .ToList();
 
-        showAttack = true;
-        showManual = false;
-        showIndifferent = false;
-        showDefend = false;
+        CurrentView = ViewMode.Attack;
     }
 
     private async Task ShowIndifferentChoices()
@@ -166,10 +131,7 @@
             .Take(3)
             .ToList();
 
-        showAttack = false;
-        showDefend = false;
-        showManual = false;
-        showIndifferent = true;
+        CurrentView = ViewMode.Indifferent;
     }
 
     private async Task ShowManualSelection()
@@ -181,10 +143,7 @@
             .OrderBy(t => t.Name) 
             .ToList();
 
-        showAttack = false;
-        showDefend = false;
-        showIndifferent = false;
-        showManual = true;
+        CurrentView = ViewMode.Manual;
     }
 
     private async Task SubmitOrUpdateUserOrder(TerritoryOwnershipWithNeighbor territory)
