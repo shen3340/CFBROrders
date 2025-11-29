@@ -14,20 +14,23 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Services
 {
-    public class OrderAllocationService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<OrderAllocationService> logger) : IOrderAllocationService
+    public class OrderAllocationService(IUnitOfWork unitOfWork, IOperationResult result, 
+        ILogger<OrderAllocationService> logger, ITerritoryService territoryService) : IOrderAllocationService
     {
         public IUnitOfWork UnitOfWork { get; set; } = unitOfWork;
         public IOperationResult Result { get; set; } = result;
 
         private readonly ILogger _logger = logger;
+        public ITerritoryService TerritoryService { get; set; } = territoryService;
 
         private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).Db;
 
-        public List<OrderAllocation> GetOrderAllocations(int teamId, int seasonId, int turnId)
+        public List<OrderAllocation> GetAllOrderAllocations(int teamId, int seasonId, int turnId)
         {
             Result.Reset();
 
-            List<OrderAllocation> orderAllocations = new();
+            List<OrderAllocation> orderAllocations;
+
             try
             {
                 orderAllocations = Db.Fetch<OrderAllocation>(
@@ -41,6 +44,11 @@ namespace CFBROrders.SDK.Services
                     teamId,
                     seasonId,
                     turnId);
+
+                foreach (var order in orderAllocations)
+                {
+                    order.TerritoryName = TerritoryService.GetTerritoryNameByTerritoryId(order.TerritoryId);
+                }
 
             }
             catch (Exception ex)

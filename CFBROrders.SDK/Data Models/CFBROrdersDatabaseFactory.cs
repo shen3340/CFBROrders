@@ -19,16 +19,11 @@ namespace CFBROrders.SDK.DataModel
 
         public static void Setup(string connectionString)
         {
-            var fluentConfig = FluentMappingConfiguration.Configure(new NPocoModelMappings());
-
-
-
             DbFactory = DatabaseFactory.Config(x =>
             {
                 x.UsingDatabase(() =>
                     new Database(connectionString, DatabaseType.PostgreSQL, NpgsqlFactory.Instance)
                 );
-                x.WithFluentConfig(fluentConfig);
             });
         }
     }

@@ -12,7 +12,7 @@ using NPoco;
 //     Schema:                 `public`
 //     Include Views:          `true`
 //
-//     Last Generated:         `11/28/2025 10:54:59 AM`
+//     Last Generated:         `11/28/2025 11:21:55 PM`
 
 
 
@@ -257,7 +257,7 @@ namespace CFBROrders.SDK.Models
         [Column("starpower_remaining")]
         public int? StarpowerRemaining { get; set; }
         [Column("is_territory_full")]
-        public bool? IsTerritoryFull { get; set; }
+        public bool IsTerritoryFull { get; set; }
     } 
     [NPoco.TableName("past_turns")]
     public partial class PastTurn

@@ -10,7 +10,7 @@ namespace CFBROrders.SDK.Interfaces.Services
 {
     public interface IOrderAllocationService
     {
-        public List<OrderAllocation> GetOrderAllocations(int teamId, int seasonId, int turnId);
+        public List<OrderAllocation> GetAllOrderAllocations(int teamId, int seasonId, int turnId);
 
         public IOperationResult InsertOrderAllocation(OrderAllocation orderAllocation);
         

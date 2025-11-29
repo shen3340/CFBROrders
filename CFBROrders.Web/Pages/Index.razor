@@ -30,21 +30,15 @@
               Style="@ButtonStyle"
               Click="@ShowIndifferentChoices" />
 
-@{
-    var viewList = CurrentView switch
-    {
-        ViewMode.Defend => randomDefend,
-        ViewMode.Attack => randomAttack,
-        ViewMode.Manual => manual,
-        ViewMode.Indifferent => randomIndifferent,
-        _ => null
-    };
-
-    if (viewList != null)
-    {
-        @RenderTerritoryButtons(viewList);
-    }
+@if (manualOptions?.Any() == true)
+{
+    @RenderManualButtons(manualOptions)
 }
+@if (orderOptions?.Any() == true)
+{
+    @RenderTerritoryButtons(orderOptions)
+}
+
 
 @code {
     [CascadingParameter]
@@ -55,13 +49,9 @@
     [Parameter, SupplyParameterFromQuery]
     public string? edit { get; set; }
 
-    private List<TerritoryOwnershipWithNeighbor> randomDefend = new();
-    private List<TerritoryOwnershipWithNeighbor> randomAttack = new();
-    private List<TerritoryOwnershipWithNeighbor> randomIndifferent = new();
-    private List<TerritoryOwnershipWithNeighbor> manual = new();
-
-    private enum ViewMode { None, Attack, Defend, Manual, Indifferent }
-    private ViewMode CurrentView = ViewMode.None;
+    private List<OrderAllocation> orderAllocations = new();
+    private List<OrderAllocation> orderOptions = new();
+    private List<TerritoryOwnershipWithNeighbor> manualOptions = new();
     private int turn_id;
     private int season;
 
@@ -82,57 +72,72 @@
 
             return;
         }
+
+        orderAllocations = OrderAllocationService.GetAllOrderAllocations(TeamService.GetTeamIdByTeamName(CurrentUser.Team), season, turn_id);
     }
 
-    private RenderFragment RenderTerritoryButtons(List<TerritoryOwnershipWithNeighbor> territoryList) => __builder =>
+    private RenderFragment RenderTerritoryButtons(List<OrderAllocation> territoryList) => __builder =>
     {
         @foreach (var territory in territoryList)
         {
             <div style="margin-top:10px;">
-                <RadzenButton Text="@territory.Name"
+                <RadzenButton Text="@territory.TerritoryName"
                                 Style="@ButtonStyle"
                                 Click="@(args => SubmitOrUpdateUserOrder(territory))" />
             </div>
         }
     };
 
+    private RenderFragment RenderManualButtons(List<TerritoryOwnershipWithNeighbor> territoryList) => __builder =>
+    {
+        @foreach (var territory in territoryList)
+        {
+            <div style="margin-top:10px;">
+                <RadzenButton Text="@territory.Name"
+                                Style="@ButtonStyle"
+                                Click="@(args => SubmitOrUpdateManualTerritory(territory))" />
+            </div>
+        }
+    };
+
+    private List<OrderAllocation> FilterUserOrders(List<OrderAllocation> allocations)
+    {
+        var notFull = allocations.Where(allocation => !allocation.IsTerritoryFull).ToList();
+
+        var filtered = notFull.Any() ? notFull : allocations;
+
+        filtered = filtered.OrderByDescending(allocation => allocation.Tier).ToList();
+
+        return filtered.Take(3).ToList();
+    }
+
     private async Task ShowDefendChoices()
     {
-        var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, CurrentUser.Team);
+        orderOptions = FilterUserOrders(orderAllocations
+            .Where(a => a.OwnerId == a.TeamId)
+            .Where(a => a.StarpowerRemaining > 0)
+            .ToList());
 
-        randomDefend = defendable
-            .OrderBy(_ => Guid.NewGuid())
-            .Take(3)
-            .ToList();
-
-        CurrentView = ViewMode.Defend;
+        manualOptions.Clear();
     }
 
     private async Task ShowAttackChoices()
     {
-        var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, CurrentUser.Team);
+        orderOptions = FilterUserOrders(orderAllocations
+            .Where(a => a.OwnerId != a.TeamId)
+            .Where(a => a.StarpowerRemaining > 0)
+            .ToList());
 
-        randomAttack = attackable
-            .OrderBy(_ => Guid.NewGuid())
-            .Take(3)
-            .ToList();
-
-        CurrentView = ViewMode.Attack;
+        manualOptions.Clear();
     }
 
     private async Task ShowIndifferentChoices()
     {
-        var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, CurrentUser.Team);
-        var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, CurrentUser.Team);
+        orderOptions = FilterUserOrders(orderAllocations
+            .Where(a => a.StarpowerRemaining > 0)
+            .ToList());
 
-        var allOptions = defendable.Concat(attackable).ToList();
-
-        randomIndifferent = allOptions
-            .OrderBy(_ => Guid.NewGuid())
-            .Take(3)
-            .ToList();
-
-        CurrentView = ViewMode.Indifferent;
+        manualOptions.Clear();
     }
 
     private async Task ShowManualSelection()
@@ -140,14 +145,14 @@
         var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, CurrentUser.Team);
         var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, CurrentUser.Team);
 
-        manual = defendable.Concat(attackable)
+        manualOptions = defendable.Concat(attackable)
             .OrderBy(t => t.Name) 
             .ToList();
 
-        CurrentView = ViewMode.Manual;
+        orderOptions.Clear();
     }
 
-    private async Task SubmitOrUpdateUserOrder(TerritoryOwnershipWithNeighbor territory)
+    private async Task SubmitOrUpdateUserOrder(OrderAllocation territory)
     {
         var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
 
@@ -171,6 +176,46 @@
                 return;
             }
 
+        }
+        else
+        {
+            existingOrder.TerritoryId = territory.TerritoryId;
+
+            var result = UserOrderService.UpdateUserOrder(existingOrder);
+
+            if (result.IsError)
+            {
+                Navigation.NavigateTo("/error");
+                return;
+            }
+        }
+
+        Navigation.NavigateTo($"/confirmation/{territory.TerritoryName}");
+    }
+
+    private async Task SubmitOrUpdateManualTerritory(TerritoryOwnershipWithNeighbor territory)
+    {
+        var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
+
+        if (existingOrder == null)
+        {
+            var userOrder = new UserOrder
+            {
+                Username = CurrentUser.Username,
+                SeasonId = season,
+                TurnId = turn_id,
+                Team = CurrentUser.Team,
+                TerritoryId = territory.TerritoryId,
+                Starpower = CurrentUser.Overall
+            };
+
+            var result = UserOrderService.InsertUserOrder(userOrder);
+
+            if (result.IsError)
+            {
+                Navigation.NavigateTo("/error");
+                return;
+            }
         }
         else
         {

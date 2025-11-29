@@ -237,7 +237,7 @@ else
 
         starPower = TeamService.GetTeamStarPowerForTurn(CurrentUser.Team, season, lastRoll - 1);
 
-        var existingOrders = OrderAllocationService.GetOrderAllocations(TeamService.GetTeamIdByTeamName(CurrentUser.Team), season, lastRoll + 1);
+        var existingOrders = OrderAllocationService.GetAllOrderAllocations(TeamService.GetTeamIdByTeamName(CurrentUser.Team), season, lastRoll + 1);
 
         if (existingOrders.Any())
         {
