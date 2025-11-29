@@ -4,7 +4,6 @@
 
 <h1>Welcome @CurrentUser.Username of Team @CurrentUser.Team</h1>
 
-
 <span class="star"
         style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
         @(new string('✯', CurrentUser.Overall))
@@ -12,23 +11,32 @@
 
 <p>Today is @DateTime.Today.ToLongDateString()</p>
 
-<p>Click one of the buttons below to choose your deployment, solider!</p>
+@if (ordersNotReady)
+{
+    <div style="margin-top:20px; padding:10px; color:red; font-weight:bold;">
+        Sorry, orders don’t seem to be loaded yet. Please check back later.
+    </div>
+}
+else
+{
+    <p>Click one of the buttons below to choose your deployment, solider!</p>
 
-<RadzenButton Text="I want to Attack"
-              Style="@ButtonStyle"
-              Click="@ShowAttackChoices" />
+    <RadzenButton Text="I want to Attack"
+                  Style="@ButtonStyle"
+                  Click="@ShowAttackChoices" />
 
-<RadzenButton Text="I want to Defend"
-              Style="@ButtonStyle"
-              Click="@ShowDefendChoices" />
+    <RadzenButton Text="I want to Defend"
+                  Style="@ButtonStyle"
+                  Click="@ShowDefendChoices" />
 
-<RadzenButton Text="I want to manually pick my territory"
-              Style="@ButtonStyle"
-              Click="@ShowManualSelection" />
+    <RadzenButton Text="I want to manually pick my territory"
+                  Style="@ButtonStyle"
+                  Click="@ShowManualSelection" />
 
-<RadzenButton Text="I don't care"
-              Style="@ButtonStyle"
-              Click="@ShowIndifferentChoices" />
+    <RadzenButton Text="I don't care"
+                  Style="@ButtonStyle"
+                  Click="@ShowIndifferentChoices" />
+}
 
 @if (manualOptions?.Any() == true)
 {
@@ -55,6 +63,8 @@
     private int turn_id;
     private int season;
 
+    private bool ordersNotReady = false;
+
     protected override async Task OnInitializedAsync()
     {
         season = CurrentUser.Season;
@@ -74,6 +84,12 @@
         }
 
         orderAllocations = OrderAllocationService.GetAllOrderAllocations(TeamService.GetTeamIdByTeamName(CurrentUser.Team), season, turn_id);
+        
+        if (orderAllocations == null || !orderAllocations.Any())
+        {
+            ordersNotReady = true;
+            return;
+        }
     }
 
     private RenderFragment RenderTerritoryButtons(List<OrderAllocation> territoryList) => __builder =>
