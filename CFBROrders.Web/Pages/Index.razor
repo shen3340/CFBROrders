@@ -23,19 +23,23 @@ else
 
     <RadzenButton Text="I want to Attack"
                   Style="@ButtonStyle"
-                  Click="@ShowAttackChoices" />
+                  Click="@ShowAttackChoices"
+                  class="choice-btn"/>
 
     <RadzenButton Text="I want to Defend"
                   Style="@ButtonStyle"
-                  Click="@ShowDefendChoices" />
+                  Click="@ShowDefendChoices"
+                  class="choice-btn"/>
 
     <RadzenButton Text="I want to manually pick my territory"
                   Style="@ButtonStyle"
-                  Click="@ShowManualSelection" />
+                  Click="@ShowManualSelection" 
+                  class="choice-btn"/>
 
     <RadzenButton Text="I don't care"
                   Style="@ButtonStyle"
-                  Click="@ShowIndifferentChoices" />
+                  Click="@ShowIndifferentChoices"
+                  class="choice-btn"/>
 }
 
 @if (manualOptions?.Any() == true)
@@ -60,6 +64,7 @@ else
     private List<OrderAllocation> orderAllocations = new();
     private List<OrderAllocation> orderOptions = new();
     private List<TerritoryOwnershipWithNeighbor> manualOptions = new();
+    private HashSet<int?> recommendedTerritoryIds = new();
     private int turn_id;
     private int season;
 
@@ -106,12 +111,14 @@ else
 
     private RenderFragment RenderManualButtons(List<TerritoryOwnershipWithNeighbor> territoryList) => __builder =>
     {
-        @foreach (var territory in territoryList)
+        foreach (var territory in territoryList)
         {
+            bool isRecommended = recommendedTerritoryIds.Contains(territory.TerritoryId);
+
             <div style="margin-top:10px;">
-                <RadzenButton Text="@territory.Name"
-                                Style="@ButtonStyle"
-                                Click="@(args => SubmitOrUpdateManualTerritory(territory))" />
+                <RadzenButton Text="@($"{territory.Name}{(isRecommended ? " ⭐ Recommended" : "")}")"
+                              Style="@ButtonStyle"
+                              Click="@(args => SubmitOrUpdateManualTerritory(territory))" />
             </div>
         }
     };
@@ -162,8 +169,13 @@ else
         var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, CurrentUser.Team);
 
         manualOptions = defendable.Concat(attackable)
-            .OrderBy(t => t.Name) 
+            .OrderBy(t => t.Name)
             .ToList();
+
+        recommendedTerritoryIds = orderAllocations
+            .Where(a => a.StarpowerRemaining > 0)
+            .Select(a => a.TerritoryId)
+            .ToHashSet();
 
         orderOptions.Clear();
     }
