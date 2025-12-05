@@ -58,7 +58,13 @@ else
                         AllowPaging="false">
 
             <Columns>
-                <RadzenDataGridColumn TItem="OrderAllocation" Property="TerritoryName" Title="Territory" />
+                <RadzenDataGridColumn TItem="OrderAllocation" Property="TerritoryName" Title="Territory">
+                    <Template Context="allocation">
+                        <RadzenButton Text="@allocation.TerritoryName"
+                                      Style="padding:4px;"
+                                      Click="@(args => ShowUsers(allocation))" />
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="OrderAllocation" Property="StarpowerAllocated" Title="Starpower Allocated" />
                 <RadzenDataGridColumn TItem="OrderAllocation" Property="StarpowerUsed" Title="Starpower Selected" />
                 <RadzenDataGridColumn TItem="OrderAllocation" Title="Completed %">
@@ -73,6 +79,52 @@ else
     }
 }
 
+@if (showModal && selectedTerritory != null)
+{
+    <div class="modal-backdrop" @onclick="CloseModal">
+        <div class="modal-container" @onclick:stopPropagation>
+
+            <h3>@selectedTerritory.TerritoryName</h3>
+            <p><b>Tier:</b> @selectedTerritory.Tier</p>
+
+            <h4 style="margin-top:15px;">Users Who Selected This Territory</h4>
+
+            @if (selectedUserOrders.Any())
+            {
+                <div class="allocation-summary">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Starpower</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var u in selectedUserOrders)
+                        {
+                            <tr>
+                                <td>@u.Username</td>
+                                <td>@u.Starpower</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p style="color:red; font-weight:bold;">No users moved here.</p>
+            }
+
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" @onclick="CloseModal">Close</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+
 @code {
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; }
@@ -84,6 +136,11 @@ else
     private int lastRoll;
     private int upcomingRoll;
     private int teamId;
+
+    private bool showModal = false;
+    private OrderAllocation? selectedTerritory;
+    private List<UserOrder> selectedUserOrders = new();
+
 
     protected override void OnInitialized()
     {
@@ -129,4 +186,24 @@ else
             .OrderBy(item => item.Tier)
             .ToList();
     }
+
+    private void ShowUsers(OrderAllocation allocation)
+{
+    selectedTerritory = allocation;
+
+    selectedUserOrders = userOrders
+        .Where(o => o.TerritoryId == allocation.TerritoryId)
+        .OrderByDescending(o => o.Starpower)
+        .ToList();
+
+    showModal = true;
+}
+
+private void CloseModal()
+{
+    showModal = false;
+    selectedTerritory = null;
+    selectedUserOrders.Clear();
+}
+
 }
