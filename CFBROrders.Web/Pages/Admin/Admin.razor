@@ -1,6 +1,7 @@
 ﻿@page "/admin"
 @layout MainLayout
 @attribute [Authorize]
+@inject DialogService DialogService
 
 <h1>Order Allocations</h1>
 
@@ -62,11 +63,13 @@ else
                     <Template Context="allocation">
                         <RadzenButton Text="@allocation.TerritoryName"
                                       Style="padding:4px;"
-                                      Click="@(args => ShowUsers(allocation))" />
+                                      Click="@(args => ShowUsersAsync(allocation))" />
                     </Template>
                 </RadzenDataGridColumn>
+
                 <RadzenDataGridColumn TItem="OrderAllocation" Property="StarpowerAllocated" Title="Starpower Allocated" />
                 <RadzenDataGridColumn TItem="OrderAllocation" Property="StarpowerUsed" Title="Starpower Selected" />
+
                 <RadzenDataGridColumn TItem="OrderAllocation" Title="Completed %">
                     <Template Context="allocation">
                         @(allocation.StarpowerAllocated.HasValue && allocation.StarpowerAllocated > 0 
@@ -78,52 +81,6 @@ else
         </RadzenDataGrid>
     }
 }
-
-@if (showModal && selectedTerritory != null)
-{
-    <div class="modal-backdrop" @onclick="CloseModal">
-        <div class="modal-container" @onclick:stopPropagation>
-
-            <h3>@selectedTerritory.TerritoryName</h3>
-            <p><b>Tier:</b> @selectedTerritory.Tier</p>
-
-            <h4 style="margin-top:15px;">Users Who Selected This Territory</h4>
-
-            @if (selectedUserOrders.Any())
-            {
-                <div class="allocation-summary">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Starpower</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach (var u in selectedUserOrders)
-                        {
-                            <tr>
-                                <td>@u.Username</td>
-                                <td>@u.Starpower</td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <p style="color:red; font-weight:bold;">No users moved here.</p>
-            }
-
-            <div class="modal-buttons">
-                <button class="modal-btn cancel" @onclick="CloseModal">Close</button>
-            </div>
-
-        </div>
-    </div>
-}
-
 
 @code {
     [CascadingParameter]
@@ -137,7 +94,6 @@ else
     private int upcomingRoll;
     private int teamId;
 
-    private bool showModal = false;
     private OrderAllocation? selectedTerritory;
     private List<UserOrder> selectedUserOrders = new();
 
@@ -154,7 +110,7 @@ else
             ?.OrderBy(orderAllocation => orderAllocation.TerritoryName)
             .ToList() ?? new();
 
-            userOrders = UserOrderService.GetAllUserOrdersByTurn(season, upcomingRoll);
+        userOrders = UserOrderService.GetAllUserOrdersByTurn(season, upcomingRoll);
     }
 
     private IEnumerable<object> GetTierSummaries()
@@ -187,23 +143,57 @@ else
             .ToList();
     }
 
-    private void ShowUsers(OrderAllocation allocation)
-{
-    selectedTerritory = allocation;
+    private async Task ShowUsersAsync(OrderAllocation allocation)
+    {
+        selectedTerritory = allocation;
 
-    selectedUserOrders = userOrders
-        .Where(o => o.TerritoryId == allocation.TerritoryId)
-        .OrderByDescending(o => o.Starpower)
-        .ToList();
+        selectedUserOrders = userOrders
+            .Where(o => o.TerritoryId == allocation.TerritoryId)
+            .OrderByDescending(o => o.Starpower)
+            .ToList();
 
-    showModal = true;
-}
+        await DialogService.OpenAsync(
+            $"{selectedTerritory.TerritoryName}",
+            ds => @<div>
 
-private void CloseModal()
-{
-    showModal = false;
-    selectedTerritory = null;
-    selectedUserOrders.Clear();
-}
+                <p><b>Tier:</b> @selectedTerritory.Tier</p>
 
+                <h4>Users Who Selected This Territory</h4>
+
+                @if (selectedUserOrders.Any())
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Starpower</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var u in selectedUserOrders)
+                        {
+                            <tr>
+                                <td>@u.Username</td>
+                                <td>@u.Starpower</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p style="color:red;font-weight:bold;">No users moved here.</p>
+                }
+
+                <RadzenButton Text="Close" Click="() => ds.Close()" Style="margin-top:20px;" />
+
+            </div>,
+            new DialogOptions()
+            {
+                Width = "650px",
+                Height = "auto",
+                CloseDialogOnOverlayClick = true
+            }
+        );
+    }
 }

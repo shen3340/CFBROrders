@@ -1,5 +1,6 @@
 ﻿@page "/admin/AddOrders"
 @layout MainLayout
+@inject DialogService DialogService
 @inject NotificationService NotificationService
 @attribute [Authorize]
 
@@ -161,47 +162,6 @@ else
     }
 }
 
-@if (showModal)
-{
-    <div class="modal-backdrop">
-        <div class="modal-container">
-
-            <h3>Confirm Submit?</h3>
-
-            <p>
-                Total Star Power Used: 
-                <b>@TotalStarPowerUsed</b> / @starPower
-            </p>
-
-            <h4>Allocation Summary</h4>
-
-            <ul class="allocation-summary">
-                @foreach (var t in AllocatedTerritories)
-                {
-                    <li>
-                        <b>@t.Name</b>
-                        — @t.StarPowerAllocation SP  
-                        — Tier @t.Tier
-                        — @(defendableTerritories.Contains(t) ? "Defend" : "Attack")
-                    </li>
-                }
-            </ul>
-
-            <div class="modal-buttons">
-                <button class="modal-btn"
-                        style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor};")"
-                        @onclick="ConfirmSubmit">
-                    Submit
-                </button>
-
-                <button class="modal-btn cancel" @onclick="() => showModal = false">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-}
-
 @code {
     [CascadingParameter] 
     public CurrentUser CurrentUser { get; set; }
@@ -220,7 +180,6 @@ else
     private string? existingAllocaterUsername;
     private bool hasOrders = false;
     private bool ordersSubmitted = false;
-    bool showModal = false;
 
     private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
 
@@ -283,7 +242,7 @@ else
         }
     }
 
-    private void OnSubmitClick()
+    private async Task OnSubmitClick()
     {
         if (TotalStarPowerUsed <= 0)
         {
@@ -296,12 +255,53 @@ else
             return;
         }
 
-        showModal = true;
+        await DialogService.OpenAsync(
+            "Confirm Submit",
+            ds => @<div>
+
+                <h3>Are you sure you want to submit these order allocations?</h3>
+                <p>
+                    Total Star Power Used: <b>@TotalStarPowerUsed</b> / @starPower
+                </p>
+
+                <h4>Allocation Summary</h4>
+
+                <ul class="allocation-summary">
+                    @foreach (var territory in AllocatedTerritories)
+                    {
+                        <li>
+                            <b>@territory.Name</b>
+                            — @territory.StarPowerAllocation SP  
+                            — Tier @territory.Tier
+                            — @(defendableTerritories.Contains(territory) ? "Defend" : "Attack")
+                        </li>
+                    }
+                </ul>
+
+                <div style="margin-top:20px;">
+                    <RadzenButton 
+                        Text="Submit"
+                        Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor};")"
+                        Click="() => { ConfirmSubmit(); ds.Close(); }" />
+
+                    <RadzenButton 
+                        Text="Cancel"
+                        Style="margin-left:10px;"
+                        Click="() => ds.Close()" />
+                </div>
+
+            </div>,
+            new DialogOptions()
+            {
+                Width = "650px",
+                Height = "auto",
+                CloseDialogOnOverlayClick = true
+            }
+        );
     }
 
     private void ConfirmSubmit()
     {
-        showModal = false;
         SubmitOrderAllocations();
         ordersSubmitted = true;
     }
