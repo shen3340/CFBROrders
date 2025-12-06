@@ -4,6 +4,8 @@
 @inject NotificationService NotificationService
 @attribute [Authorize]
 
+<title>Add Orders - CFBR Orders</title>
+
 <h1>Add Orders</h1>
 
 @if (hasOrders)
@@ -182,9 +184,7 @@ else
     private bool ordersSubmitted = false;
 
     private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
-
     private int TotalAttackable => attackableTerritories.Sum(territory => territory.StarPowerAllocation);
-
     private int TotalStarPowerUsed => TotalDefendable + TotalAttackable;
 
     protected override void OnInitialized()
