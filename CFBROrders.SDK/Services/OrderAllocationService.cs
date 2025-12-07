@@ -5,16 +5,10 @@ using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Services
 {
-    public class OrderAllocationService(IUnitOfWork unitOfWork, IOperationResult result, 
+    public class OrderAllocationService(IUnitOfWork unitOfWork, IOperationResult result,
         ILogger<OrderAllocationService> logger, ITerritoryService territoryService) : IOrderAllocationService
     {
         public IUnitOfWork UnitOfWork { get; set; } = unitOfWork;
@@ -61,6 +55,40 @@ namespace CFBROrders.SDK.Services
             return orderAllocations;
         }
 
+        public List<TierSummary> GetTierSummaries(IEnumerable<OrderAllocation> orderAllocations, IEnumerable<UserOrder> userOrders)
+        {
+            return orderAllocations
+           .GroupBy(allocation => allocation.Tier)
+           .Select(group => new TierSummary
+           {
+               Tier = group.Key ?? 0,
+
+               Players = userOrders
+                   .Where(userOrder => group.Any(allocation => allocation.TerritoryId == userOrder.TerritoryId))
+                   .Select(userOrder => userOrder.Username)
+                   .Distinct()
+                   .Count(),
+
+               Quota = group.Sum(allocation => allocation.StarpowerAllocated ?? 0),
+               AssignedStars = group.Sum(allocation => allocation.StarpowerUsed ?? 0),
+
+               QuotaPercent = group.Sum(allocation => allocation.StarpowerAllocated ?? 0) > 0
+                   ? (double)group.Sum(allocation => allocation.StarpowerUsed ?? 0) /
+                     group.Sum(allocation => allocation.StarpowerAllocated ?? 0) * 100
+                   : 0,
+
+               TotalTerritories = group.Count(),
+               CompletedTerritories = group.Count(allocation => allocation.IsTerritoryFull),
+
+               CompletedPercent = group.Any()
+                   ? (double)group.Count(allocation => allocation.IsTerritoryFull) /
+                     group.Count() * 100
+                   : 0
+           })
+           .OrderBy(t => t.Tier)
+           .ToList();
+        }
+
         public IOperationResult InsertOrderAllocation(OrderAllocation orderAllocation)
         {
             Result.Reset();
@@ -78,9 +106,9 @@ namespace CFBROrders.SDK.Services
                 UnitOfWork.Rollback();
 
                 _logger.LogError(ex, $"Error inserting single order allocation for {orderAllocation}");
-               
+
                 Result.GetException(ex);
-                
+
                 throw;
             }
             _logger.LogInformation($"Inserted Order Allocation: TerritoryId={orderAllocation.TerritoryId}, TeamId={orderAllocation.TeamId}");

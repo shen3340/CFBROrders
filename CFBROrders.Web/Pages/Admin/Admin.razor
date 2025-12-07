@@ -2,6 +2,9 @@
 @layout MainLayout
 @attribute [Authorize]
 @inject DialogService DialogService
+@inject ITeamService TeamService
+
+<title>Admin - CFBR Orders</title>
 
 <title>Admin - CFBR Orders</title>
 
@@ -21,28 +24,28 @@ else
 
     <h3>Tier Summary</h3>
 
-    <RadzenDataGrid Data="@GetTierSummaries()"
-                    TItem="dynamic"
+    <RadzenDataGrid Data="@tierSummaries"
+                    TItem="TierSummary"
                     AllowFiltering="false"
                     AllowSorting="true"
                     AllowPaging="false">
 
         <Columns>
-            <RadzenDataGridColumn TItem="dynamic" Property="Tier" Title="Tier" />
-            <RadzenDataGridColumn TItem="dynamic" Property="Players" Title="Players" />
-            <RadzenDataGridColumn TItem="dynamic" Property="Quota" Title="Starpower Allocated" />
-            <RadzenDataGridColumn TItem="dynamic" Property="AssignedStars" Title="Starpower Selected" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="Tier" Title="Tier" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="Players" Title="Players" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="Quota" Title="Starpower Allocated" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="AssignedStars" Title="Starpower Selected" />
 
-            <RadzenDataGridColumn TItem="dynamic" Title="Starpower Completed %">
+            <RadzenDataGridColumn TItem="TierSummary" Title="Starpower Completed %">
                 <Template Context="t">
                     @($"{t.QuotaPercent:F1}%")
                 </Template>
             </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="dynamic" Property="TotalTerritories" Title="Total Territories" />
-            <RadzenDataGridColumn TItem="dynamic" Property="CompletedTerritories" Title="Completed Territories" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="TotalTerritories" Title="Total Territories" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="CompletedTerritories" Title="Completed Territories" />
 
-            <RadzenDataGridColumn TItem="dynamic" Title="Territory Completed %">
+            <RadzenDataGridColumn TItem="TierSummary" Title="Territory Completed %">
                 <Template Context="t">
                     @($"{t.CompletedPercent:F1}%")
                 </Template>
@@ -90,15 +93,16 @@ else
 
     private List<OrderAllocation> orderAllocations = new();
     private List<UserOrder> userOrders = new();
+    private List<TierSummary> tierSummaries = new();
 
     private int season;
     private int lastRoll;
     private int upcomingRoll;
     private int teamId;
+    private string ownerName;
 
     private OrderAllocation? selectedTerritory;
     private List<UserOrder> selectedUserOrders = new();
-
 
     protected override void OnInitialized()
     {
@@ -113,41 +117,18 @@ else
             .ToList() ?? new();
 
         userOrders = UserOrderService.GetAllUserOrdersByTurn(season, upcomingRoll);
-    }
 
-    private IEnumerable<object> GetTierSummaries()
-    {
-        return orderAllocations
-            .GroupBy(orderAllocation => orderAllocation.Tier)
-            .Select(group => new
-            {
-                Tier = group.Key ?? 0,
-
-                Players = userOrders
-                    .Where(uo => group.Any(oa => oa.TerritoryId == uo.TerritoryId))
-                    .Select(uo => uo.Username)
-                    .Distinct()
-                    .Count(),
-
-                Quota = group.Sum(orderAllocation => orderAllocation.StarpowerAllocated ?? 0),
-                AssignedStars = group.Sum(orderAllocation => orderAllocation.StarpowerUsed ?? 0),
-                QuotaPercent = group.Sum(orderAllocation => orderAllocation.StarpowerAllocated ?? 0) > 0
-                    ? (double)group.Sum(orderAllocation => orderAllocation.StarpowerUsed ?? 0) / group.Sum(orderAllocation => orderAllocation.StarpowerAllocated ?? 0) * 100
-                    : 0,
-
-                TotalTerritories = group.Count(),
-                CompletedTerritories = group.Count(orderAllocation => orderAllocation.IsTerritoryFull),
-                CompletedPercent = group.Count() > 0
-                    ? (double)group.Count(orderAllocation => orderAllocation.IsTerritoryFull) / group.Count() * 100
-                    : 0
-            })
-            .OrderBy(item => item.Tier)
-            .ToList();
+        tierSummaries = OrderAllocationService.GetTierSummaries(orderAllocations, userOrders);
     }
 
     private async Task ShowUsersAsync(OrderAllocation allocation)
     {
         selectedTerritory = allocation;
+
+        if (allocation.TeamId != allocation.OwnerId && allocation.OwnerId.HasValue)
+        {
+            ownerName = TeamService.GetTeamNameByTeamId(allocation.OwnerId.Value);
+        }
 
         selectedUserOrders = userOrders
             .Where(o => o.TerritoryId == allocation.TerritoryId)
@@ -158,6 +139,11 @@ else
             $"{selectedTerritory.TerritoryName}",
             ds => @<div>
 
+            @if (!string.IsNullOrEmpty(ownerName))
+            {
+                <p><b>Previous Owner:</b> @ownerName</p>
+            }
+                
                 <p><b>Tier:</b> @selectedTerritory.Tier</p>
 
                 <h4>Users Who Selected This Territory</h4>
@@ -172,11 +158,11 @@ else
                             </tr>
                         </thead>
                         <tbody>
-                        @foreach (var u in selectedUserOrders)
+                        @foreach (var userOrder in selectedUserOrders)
                         {
                             <tr>
-                                <td>@u.Username</td>
-                                <td>@u.Starpower</td>
+                                <td>@userOrder.Username</td>
+                                <td>@userOrder.Starpower</td>
                             </tr>
                         }
                         </tbody>
