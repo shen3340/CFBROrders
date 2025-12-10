@@ -2,7 +2,6 @@
 @layout MainLayout
 @inject DialogService DialogService
 @inject NotificationService NotificationService
-@inject IJSRuntime JS
 @attribute [Authorize]
 
 <title>Add Orders - CFBR Orders</title>
@@ -16,7 +15,6 @@
     </p>
 
     <RadzenButton Text="View Existing Orders"
-                  Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
                   Click="@(() => Navigation.NavigateTo("/admin"))" />
 }
 else 
@@ -24,9 +22,8 @@ else
     @if (!ordersSubmitted)
     {
         <p>
-        @CurrentUser.Username playing for @CurrentUser.Team has 
-        <span class="star"
-            style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
+        <b>@CurrentUser.Username</b> playing for <b>@CurrentUser.Team:</b> 
+        <span class="star">
             @(new string('✯', CurrentUser.Overall))
         </span>
         </p>
@@ -38,7 +35,6 @@ else
         <h3>Defendable Territories</h3>
         <RadzenDataGrid Data="@defendableTerritories"
                         TItem="TerritoryOwnershipWithNeighbor"
-                        Style="@($"--pager-color:{CurrentUser.Color};")"
                         ShowPagingSummary="true"
                         AllowFiltering="true"
                         AllowSorting="true"
@@ -75,8 +71,8 @@ else
                     <Template Context="territory">
                         <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
                                        TValue="int"
-                                       Style="@($"--arrow-color:{CurrentUser.Color}; width:100%;")"
-                                       Min="0"
+                                       Class="full-width"
+                                       Min="0" 
                                        Max="@starPower"/>
                     </Template>
                 </RadzenDataGridColumn>
@@ -85,8 +81,7 @@ else
                     <Template Context="territory">
                         <RadzenDropDown @bind-Value="territory.Tier"
                         Data="@tierOptions"
-                        Class="tier-dropdown"
-                        Style="@($"--team-color:{CurrentUser.Color};")"
+                        Class="full-width"
                         AllowClear="false" />
 
                     </Template>
@@ -104,7 +99,6 @@ else
         <h3>Attackable Territories</h3>
         <RadzenDataGrid Data="@attackableTerritories" 
                         TItem="TerritoryOwnershipWithNeighbor"
-                        Style="@($"--pager-color:{CurrentUser.Color};")"
                         ShowPagingSummary="true" 
                         AllowFiltering="true"
                         AllowSorting="true" 
@@ -124,7 +118,7 @@ else
                     <Template Context="territory">
                         <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
                                        TValue="int"
-                                       Style="@($"--arrow-color:{CurrentUser.Color}; width:100%;")"
+                                       class="full-width"
                                        Min="0"
                                        Max="@starPower"/>
                     </Template>
@@ -134,7 +128,7 @@ else
                     <Template Context="territory">
                         <RadzenDropDown @bind-Value="territory.Tier"
                                         Data="@tierOptions"
-                                        Style="width:100%"
+                                        class="full-width"
                                         AllowClear="false" />
                     </Template>
                 </RadzenDataGridColumn>
@@ -146,22 +140,20 @@ else
             Attacking Allocation Total: <b>@TotalAttackable</b>
         </p>
 
-        <p style="font-size:1.2em;">
+        <p class="large-text">
             Total Star Power Used: <b>@TotalStarPowerUsed</b> / @starPower
         </p>
 
         <br />
         <RadzenButton Text="Submit Orders"
                       Icon="save"
-                      Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
             Click="@OnSubmitClick"/>
     }
     else
     {
-        <div style="text-align:center; padding:20px;">
+        <div class="centered-box">
         <h2>Your orders were successfully allocated!</h2>
         <RadzenButton Text="View Order Progress"
-                      Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
                       Click="@(() => Navigation.NavigateTo("/admin"))" />
         </div>
     }
@@ -189,14 +181,6 @@ else
     private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
     private int TotalAttackable => attackableTerritories.Sum(territory => territory.StarPowerAllocation);
     private int TotalStarPowerUsed => TotalDefendable + TotalAttackable;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await JS.InvokeVoidAsync("setTeamColor", CurrentUser.Color);
-        }
-    }
 
     protected override void OnInitialized()
     {
@@ -289,15 +273,14 @@ else
                     }
                 </ul>
 
-                <div style="margin-top:20px;">
+                <div class="margin-top-20">
                     <RadzenButton 
                         Text="Submit"
-                        Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor};")"
                         Click="() => { ConfirmSubmit(); ds.Close(); }" />
 
                     <RadzenButton 
                         Text="Cancel"
-                        Style="margin-left:10px;"
+                        class="cancel-btn"
                         Click="() => ds.Close()" />
                 </div>
 

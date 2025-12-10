@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
 
 <PageTitle>CFBR Orders</PageTitle>
 
@@ -78,6 +79,14 @@
             CurrentUser.Username = user.FindFirstValue("Username");
 
             NLog.ScopeContext.PushProperty("Username", CurrentUser.Username);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrWhiteSpace(CurrentUser.Color))
+        {
+            await JS.InvokeVoidAsync("setTeamColor", CurrentUser.Color, CurrentUser.ContrastColor);
         }
     }
 

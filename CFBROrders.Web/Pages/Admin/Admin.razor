@@ -12,7 +12,7 @@
 
 @if (!orderAllocations.Any())
 {
-    <div style="margin-top:20px; padding:10px; color:red; font-weight:bold;">
+    <div class="nothing-found">
         No order allocations found for Season @season Turn @upcomingRoll, please check back later.
     </div>
 }
@@ -67,7 +67,6 @@ else
                 <RadzenDataGridColumn TItem="OrderAllocation" Property="TerritoryName" Title="Territory">
                     <Template Context="allocation">
                         <RadzenButton Text="@allocation.TerritoryName"
-                                      Style="@($"{ButtonStyle}; padding:4px;")"
                                       Click="@(args => ShowUsersAsync(allocation))" />
 
                     </Template>
@@ -95,9 +94,6 @@ else
     private List<OrderAllocation> orderAllocations = new();
     private List<UserOrder> userOrders = new();
     private List<TierSummary> tierSummaries = new();
-
-    private string ButtonStyle => $"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;";
-
 
     private int season;
     private int lastRoll;
@@ -174,10 +170,10 @@ else
                 }
                 else
                 {
-                    <p style="color:red;font-weight:bold;">No users moved here.</p>
+                    <p class="nothing-found">No users moved here.</p>
                 }
 
-                <RadzenButton Text="Close" Click="() => ds.Close()" Style="margin-top:20px;" />
+                <RadzenButton Text="Close" Click="() => ds.Close()" class="margin-top-20" />
 
             </div>,
             new DialogOptions()

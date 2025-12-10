@@ -1,5 +1,31 @@
-﻿html {
+﻿/* #region Global Scrollbar Styling */
+/* Webkit Browsers (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--team-color);
+  border-radius: 6px;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--team-color) #f1f1f1;
+}
+
+/* #endregion */
+/* #region Base / Reset / Typography */
+html {
   font-size: 14px;
+  position: relative;
+  min-height: 100%;
 }
 
 @media (min-width: 768px) {
@@ -7,27 +33,28 @@
     font-size: 16px;
   }
 }
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
   margin-bottom: 60px;
 }
 
-.navbar .navbar-nav .nav-link:hover {
+h1, h2, body {
   color: #000000 !important;
 }
 
-.star {
-  line-height: 1em;
-  margin: 5px;
-  font-size: 6rem;
+/* #endregion */
+/* #region Buttons & Focus States */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+.rz-button {
+  background-color: var(--team-color) !important;
+  color: var(--team-contrast-color) !important;
+  border-radius: 0;
 }
 
 .choice-btn {
@@ -35,11 +62,59 @@ body {
 }
 
 .rz-numeric-button {
-  background-color: var(--arrow-color) !important;
+  background-color: var(--team-color) !important;
+}
+
+.cancel-btn {
+  background-color: #ff0000 !important;
 }
 
 .rz-pager-page.rz-state-active {
-  color: var(--pager-color) !important;
+  color: var(--team-color) !important;
+}
+
+/* #endregion */
+/* #region Navigations & Dropdowns */
+.navbar .navbar-nav .nav-link:hover {
+  color: #000000 !important;
+}
+
+.rz-dropdown-item.rz-state-highlight,
+.rz-dropdown-item:hover {
+  background-color: var(--team-color) !important;
+}
+
+.rz-dropdown-panel {
+  --team-color: inherit !important;
+}
+
+/* #endregion */
+/* #region Layout and Utility Classes */
+.full-width {
+  width: 100%;
+}
+
+.centered-box {
+  text-align: center;
+  padding: 20px;
+}
+
+.margin-top-20 {
+  margin-top: 20px;
+}
+
+.large-text {
+  font-size: 1.5em;
+}
+
+/* #endregion */
+/* #region Special/Project classes */
+.star {
+  line-height: 1em;
+  margin: 5px;
+  font-size: 6rem;
+  text-shadow: 0 0 5px var(--team-contrast-color);
+  color: var(--team-color);
 }
 
 .allocation-summary {
@@ -48,14 +123,11 @@ body {
   text-align: left;
 }
 
-.rz-dropdown-item.rz-state-highlight {
-  background-color: var(--team-color) !important;
+.nothing-found {
+  margin-top: 20px;
+  padding: 10px;
+  color: #ff0000;
+  font-weight: bold;
 }
 
-.rz-dropdown-panel {
-  --team-color: inherit !important;
-}
-
-.rz-dropdown-item:hover {
-  background-color: var(--team-color) !important;
-}
+/* #endregion */

@@ -6,16 +6,15 @@
 
 <h1>Welcome @CurrentUser.Username of Team @CurrentUser.Team</h1>
 
-<span class="star"
-        style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
-        @(new string('✯', CurrentUser.Overall))
+<span class="star">
+    @(new string('✯', CurrentUser.Overall))
 </span>
 
 <p>Today is @DateTime.Today.ToLongDateString()</p>
 
 @if (ordersNotReady)
 {
-    <div style="margin-top:20px; padding:10px; color:red; font-weight:bold;">
+    <div class="nothing-found">
         Sorry, orders don’t seem to be loaded yet. Please check back later.
     </div>
 }
@@ -24,22 +23,18 @@ else
     <p>Click one of the buttons below to choose your deployment, solider!</p>
 
     <RadzenButton Text="I want to Attack"
-                  Style="@ButtonStyle"
                   Click="@ShowAttackChoices"
                   class="choice-btn"/>
 
     <RadzenButton Text="I want to Defend"
-                  Style="@ButtonStyle"
                   Click="@ShowDefendChoices"
                   class="choice-btn"/>
 
     <RadzenButton Text="I want to manually pick my territory"
-                  Style="@ButtonStyle"
                   Click="@ShowManualSelection" 
                   class="choice-btn"/>
 
     <RadzenButton Text="Pick for me"
-                  Style="@ButtonStyle"
                   Click="@ShowIndifferentChoices"
                   class="choice-btn"/>
 }
@@ -57,8 +52,6 @@ else
 @code {
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; }
-
-    private string ButtonStyle => $"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;";
 
     [Parameter, SupplyParameterFromQuery]
     public string? edit { get; set; }
@@ -104,9 +97,8 @@ else
     {
         @foreach (var territory in territoryList)
         {
-            <div style="margin-top:10px;">
+            <div class="margin-top-20">
                 <RadzenButton Text="@territory.TerritoryName"
-                                Style="@ButtonStyle"
                                 Click="@(args => SubmitOrUpdateUserOrder(territory))" />
             </div>
         }
@@ -118,9 +110,8 @@ else
         {
             bool isRecommended = recommendedTerritoryIds.Contains(territory.TerritoryId);
 
-            <div style="margin-top:10px;">
+            <div class="margin-top-20">
                 <RadzenButton Text="@($"{territory.Name}{(isRecommended ? " ⭐ Recommended" : "")}")"
-                              Style="@ButtonStyle"
                               Click="@(args => SubmitOrUpdateManualTerritory(territory))" />
             </div>
         }
