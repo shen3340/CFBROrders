@@ -3,23 +3,44 @@
 @attribute [Authorize]
 @inject DialogService DialogService
 @inject ITeamService TeamService
-
-<title>Admin - CFBR Orders</title>
+@inject ITurnInfoService TurnInfoService
 
 <title>Admin - CFBR Orders</title>
 
 <h1>Order Allocations</h1>
 
+<div style="margin-bottom: 20px; display:flex; gap:20px; align-items:center;">
+
+    <div>
+        <label><b>Season:</b></label>
+        <RadzenDropDown @bind-Value="selectedSeason"
+                        Data="@availableSeasons"
+                        Change="OnSeasonChanged"
+                        Style="width: 150px;" />
+
+    </div>
+
+    <div>
+        <label><b>Turn:</b></label>
+        <RadzenDropDown @bind-Value="selectedTurn"
+                        Data="@availableTurns"
+                        Change="OnTurnChanged"
+                        Style="width: 150px;" />
+
+    </div>
+
+</div>
+
 @if (!orderAllocations.Any())
 {
     <div class="nothing-found">
-        No order allocations found for Season @season Turn @upcomingRoll, please check back later.
+        No order allocations found for Season @selectedSeason Turn @selectedTurn, please check back later.
     </div>
 }
 else
 {
     <p>
-        Showing allocations for <b>@CurrentUser.Team</b> for Season <b>@season</b> Turn <b>@upcomingRoll</b>.
+        Showing allocations for <b>@CurrentUser.Team</b> for Season <b>@selectedSeason</b> Turn <b>@selectedTurn</b>.
     </p>
 
     <h3>Tier Summary</h3>
@@ -95,11 +116,14 @@ else
     private List<UserOrder> userOrders = new();
     private List<TierSummary> tierSummaries = new();
 
-    private int season;
-    private int lastRoll;
-    private int upcomingRoll;
     private int teamId;
     private string ownerName;
+
+    private List<int> availableSeasons = new();
+    private List<int> availableTurns = new();
+
+    private int selectedSeason;
+    private int selectedTurn;
 
     private OrderAllocation? selectedTerritory;
     private List<UserOrder> selectedUserOrders = new();
@@ -107,18 +131,45 @@ else
     protected override void OnInitialized()
     {
         teamId = CurrentUser.TeamId;
-        season = CurrentUser.Season;
-        lastRoll = CurrentUser.Turn;
-        upcomingRoll = lastRoll + 1;
 
+        availableSeasons = TurnInfoService.GetAllSeasons();
+        selectedSeason = availableSeasons.FirstOrDefault();
+
+        availableTurns = TurnInfoService.GetAllTurnsBySeason(selectedSeason);
+        selectedTurn = availableTurns.FirstOrDefault();
+
+        LoadAllocations();
+    }
+
+    private void LoadAllocations()
+    {
         orderAllocations = OrderAllocationService
-            .GetAllOrderAllocations(teamId, season, upcomingRoll)
-            ?.OrderBy(orderAllocation => orderAllocation.TerritoryName)
+            .GetAllOrderAllocations(teamId, selectedSeason, selectedTurn)
+            ?.OrderBy(o => o.TerritoryName)
             .ToList() ?? new();
 
-        userOrders = UserOrderService.GetAllUserOrdersByTurn(season, upcomingRoll);
+        userOrders = UserOrderService.GetAllUserOrdersByTurn(selectedSeason, selectedTurn);
 
         tierSummaries = OrderAllocationService.GetTierSummaries(orderAllocations, userOrders);
+
+        StateHasChanged();
+    }
+
+
+    private void OnSeasonChanged(object value)
+    {
+        selectedSeason = (int)value;
+
+        availableTurns = TurnInfoService.GetAllTurnsBySeason(selectedSeason);
+        selectedTurn = availableTurns.FirstOrDefault();
+
+        LoadAllocations();
+    }
+
+    private void OnTurnChanged(object value)
+    {
+        selectedTurn = (int)value;
+        LoadAllocations();
     }
 
     private async Task ShowUsersAsync(OrderAllocation allocation)

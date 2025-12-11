@@ -21,6 +21,56 @@ namespace CFBROrders.SDK.Services
 
         private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).Db;
 
+        public List<int> GetAllSeasons()
+        {
+            Result.Reset();
+
+            List<int> turns;
+
+            try
+            {
+                turns = Db.Fetch<int>(
+                    @"SELECT DISTINCT
+                       season FROM turninfo ORDER BY season DESC");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while fetching all seasons");
+
+                Result.GetException(ex);
+
+                throw;
+            }
+            _logger.LogInformation($"Fetched all seasons");
+
+            return turns;
+        }
+
+        public List<int> GetAllTurnsBySeason(int season)
+        {
+            Result.Reset();
+            List<int> turns;
+            try
+            {
+                turns = Db.Fetch<int>(
+                    @"SELECT day
+                      FROM turninfo 
+                      WHERE season = @0
+                      ORDER BY day DESC", season);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while fetching all turns for season: {season}");
+                
+                Result.GetException(ex);
+                
+                throw;
+            }
+            _logger.LogInformation($"Fetched all turns for season: {season}");
+            
+            return turns;
+        }
+
         public int GetMostRecentCompletedTurnId()
         {
             Result.Reset();
