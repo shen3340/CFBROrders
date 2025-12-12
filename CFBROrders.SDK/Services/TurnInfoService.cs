@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Services
 {
-    public class TurnInfoService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<TeamService> logger) : ITurnInfoService
+    public class TurnInfoService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<TurnInfoService> logger) : ITurnInfoService
     {
         public IUnitOfWork UnitOfWork { get; set; } = unitOfWork;
         public IOperationResult Result { get; set; } = result;

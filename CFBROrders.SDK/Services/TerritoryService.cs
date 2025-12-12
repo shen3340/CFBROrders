@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace CFBROrders.SDK.Services
 {
-    public class TerritoryService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<TeamService> logger) : ITerritoryService
+    public class TerritoryService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<TerritoryService> logger) : ITerritoryService
     {
         public IUnitOfWork UnitOfWork { get; set; } = unitOfWork;
         public IOperationResult Result { get; set; } = result;
