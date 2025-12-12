@@ -10,7 +10,7 @@
     @(new string('✯', CurrentUser.Overall))
 </span>
 
-<p>Today is @DateTime.Today.ToLongDateString()</p>
+<p>Today is @EST.ToLongDateString()</p>
 
 @if (ordersNotReady)
 {
@@ -52,6 +52,9 @@ else
 @code {
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; }
+
+    [CascadingParameter]
+    public DateTime EST { get; set; }
 
     [Parameter, SupplyParameterFromQuery]
     public string? edit { get; set; }

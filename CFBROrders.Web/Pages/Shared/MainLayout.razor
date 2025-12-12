@@ -52,7 +52,9 @@
         <article class="content p-md-4 p-2">
 
             <CascadingValue Value="CurrentUser">
-                @Body
+                <CascadingValue Value="EST">
+                    @Body
+                </CascadingValue>
             </CascadingValue>
 
         </article>
@@ -61,6 +63,11 @@
 
 @code {
     public CurrentUser CurrentUser { get; set; } = new();
+
+    private static readonly TimeZoneInfo EasternStandardTimeZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+
+    private DateTime EST { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,6 +87,8 @@
 
             NLog.ScopeContext.PushProperty("Username", CurrentUser.Username);
         }
+
+        EST = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, EasternStandardTimeZone).Date;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
