@@ -10,7 +10,6 @@
 <h1>Order Allocations</h1>
 
 <div style="margin-bottom: 20px; display:flex; gap:20px; align-items:center;">
-
     <div>
         <label><b>Season:</b></label>
         <RadzenDropDown @bind-Value="selectedSeason"
@@ -26,9 +25,7 @@
                         Data="@availableTurns"
                         Change="OnTurnChanged"
                         Style="width: 150px;" />
-
     </div>
-
 </div>
 
 @if (!orderAllocations.Any())
@@ -59,16 +56,30 @@ else
 
             <RadzenDataGridColumn TItem="TierSummary" Title="Starpower Completed %">
                 <Template Context="t">
-                    @($"{t.QuotaPercent:F1}%")
+                    @{
+                        var percent = t.QuotaPercent;
+                    }
+
+                    <div class="progress-wrapper">
+                        <RadzenProgressBar Value="@Math.Round(percent, 2)"
+                                           Style="height:20px" />
+                    </div>
                 </Template>
             </RadzenDataGridColumn>
 
             <RadzenDataGridColumn TItem="TierSummary" Property="TotalTerritories" Title="Total Territories" />
             <RadzenDataGridColumn TItem="TierSummary" Property="CompletedTerritories" Title="Completed Territories" />
 
-            <RadzenDataGridColumn TItem="TierSummary" Title="Territory Completed %">
+            <RadzenDataGridColumn TItem="TierSummary" Title="Starpower Completed %">
                 <Template Context="t">
-                    @($"{t.CompletedPercent:F1}%")
+                    @{
+                        var percent = t.CompletedPercent;
+                    }
+
+                    <div class="progress-wrapper">
+                        <RadzenProgressBar Value="@Math.Round(percent, 2)"
+                                           Style="height:20px" />
+                    </div>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -89,7 +100,7 @@ else
                     <Template Context="allocation">
                         <RadzenButton Text="@allocation.TerritoryName"
                                       Click="@(args => ShowUsersAsync(allocation))" />
-
+                                      
                     </Template>
                 </RadzenDataGridColumn>
 
@@ -98,9 +109,18 @@ else
 
                 <RadzenDataGridColumn TItem="OrderAllocation" Title="Completed %">
                     <Template Context="allocation">
-                        @(allocation.StarpowerAllocated.HasValue && allocation.StarpowerAllocated > 0 
-                            ? $"{((double)(allocation.StarpowerUsed ?? 0) / allocation.StarpowerAllocated.Value) * 100:F1}%" 
-                            : "0%")
+                        @{
+                            var percent = allocation.StarpowerAllocated.HasValue && allocation.StarpowerAllocated > 0
+                            ? ((double)(allocation.StarpowerUsed ?? 0) / allocation.StarpowerAllocated.Value) * 100
+                            : 0;
+
+                            var isOver = percent > 100;
+                        }
+
+                        <RadzenProgressBar Value="@Math.Round(percent, 2)"
+                                           Style="height:18px"
+                                           BarStyle="@(isOver ? "background-color:#e53935" : null)">
+                        </RadzenProgressBar>
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -155,7 +175,6 @@ else
         StateHasChanged();
     }
 
-
     private void OnSeasonChanged(object value)
     {
         selectedSeason = (int)value;
@@ -190,25 +209,25 @@ else
             $"{selectedTerritory.TerritoryName}",
             ds => @<div>
 
-            @if (!string.IsNullOrEmpty(ownerName))
-            {
+        @if (!string.IsNullOrEmpty(ownerName))
+        {
                 <p><b>Previous Owner:</b> @ownerName</p>
-            }
-                
-                <p><b>Tier:</b> @selectedTerritory.Tier</p>
+        }
 
-                <h4>Users Who Selected This Territory</h4>
+            <p><b>Tier:</b> @selectedTerritory.Tier</p>
 
-                @if (selectedUserOrders.Any())
-                {
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Starpower</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            <h4>Users Who Selected This Territory</h4>
+
+        @if (selectedUserOrders.Any())
+        {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Starpower</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         @foreach (var userOrder in selectedUserOrders)
                         {
                             <tr>
@@ -216,23 +235,23 @@ else
                                 <td>@userOrder.Starpower</td>
                             </tr>
                         }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <p class="nothing-found">No users moved here.</p>
-                }
+                    </tbody>
+                </table>
+        }
+        else
+        {
+                <p class="nothing-found">No users moved here.</p>
+        }
 
-                <RadzenButton Text="Close" Click="() => ds.Close()" class="margin-top-20" />
+            <RadzenButton Text="Close" Click="() => ds.Close()" class="margin-top-20" />
 
-            </div>,
-            new DialogOptions()
-            {
-                Width = "650px",
-                Height = "auto",
-                CloseDialogOnOverlayClick = true
-            }
+        </div>,
+        new DialogOptions()
+        {
+            Width = "650px",
+            Height = "auto",
+            CloseDialogOnOverlayClick = true
+        }
         );
     }
 }
