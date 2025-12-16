@@ -22,6 +22,7 @@
     protected override void OnInitialized()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+
         if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query)
             .TryGetValue("ReturnUrl", out var returnUrl))
         {

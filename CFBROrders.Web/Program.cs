@@ -2,7 +2,6 @@ using CFBROrders.SDK.Data_Models;
 using CFBROrders.SDK.DataModel;
 using CFBROrders.SDK.Interfaces;
 using CFBROrders.SDK.Interfaces.Services;
-using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using CFBROrders.SDK.Services;
 using CFBROrders.Web.Auth;
@@ -11,15 +10,10 @@ using CFBROrders.Web.Endpoints;
 using CFBROrders.Web.Handlers;
 using CFBROrders.Web.Helpers;
 using CFBROrders.Web.Interfaces.Handlers;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.EntityFrameworkCore;
-using NLog;
 using NLog.Web;
 using Radzen;
-using System.Security.Claims;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 

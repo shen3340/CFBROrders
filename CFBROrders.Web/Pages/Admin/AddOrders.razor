@@ -170,16 +170,16 @@ else
     int[] pagingOptions = { 5, 10, 20, 50 };
     private List<int> tierOptions = Enumerable.Range(1, 10).ToList();
 
-    private int season;
+    private bool hasOrders;
+    private bool ordersSubmitted;
     private int lastRoll;
+    private int season;
     private int upcomingRoll;
-    private int starPower;
     private string? existingAllocaterUsername;
-    private bool hasOrders = false;
-    private bool ordersSubmitted = false;
+    private int starPower;
 
-    private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
     private int TotalAttackable => attackableTerritories.Sum(territory => territory.StarPowerAllocation);
+    private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
     private int TotalStarPowerUsed => TotalDefendable + TotalAttackable;
 
     protected override void OnInitialized()
@@ -187,7 +187,6 @@ else
         season = CurrentUser.Season;
         lastRoll = CurrentUser.Turn;
         upcomingRoll = lastRoll + 1;
-
         starPower = TeamService.GetTeamStarPowerForTurn(CurrentUser.Team, season, lastRoll - 1);
 
         var existingOrders = OrderAllocationService.GetAllOrderAllocations(CurrentUser.TeamId, season, lastRoll + 1);

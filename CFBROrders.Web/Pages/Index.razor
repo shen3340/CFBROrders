@@ -59,14 +59,14 @@ else
     [Parameter, SupplyParameterFromQuery]
     public string? edit { get; set; }
 
+    private HashSet<int?> recommendedTerritoryIds = new();
     private List<OrderAllocation> orderAllocations = new();
     private List<OrderAllocation> orderOptions = new();
     private List<TerritoryOwnershipWithNeighbor> manualOptions = new();
-    private HashSet<int?> recommendedTerritoryIds = new();
-    private int turn_id;
-    private int season;
 
-    private bool ordersNotReady = false;
+    private bool ordersNotReady;
+    private int season;
+    private int turn_id;
 
     protected override async Task OnInitializedAsync()
     {

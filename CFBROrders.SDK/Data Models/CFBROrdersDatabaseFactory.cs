@@ -1,7 +1,5 @@
-﻿using CFBROrders.SDK.Data_Models;
-using Npgsql;
+﻿using Npgsql;
 using NPoco;
-using NPoco.FluentMappings;
 
 namespace CFBROrders.SDK.DataModel
 {

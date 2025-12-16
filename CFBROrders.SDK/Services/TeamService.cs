@@ -1,14 +1,8 @@
 ﻿using CFBROrders.SDK.Data_Models;
 using CFBROrders.SDK.Interfaces;
 using CFBROrders.SDK.Interfaces.Services;
-using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Services
 {

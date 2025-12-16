@@ -75,7 +75,7 @@ else
                         var zeroClass = percent == 0 ? "progress-zero" : null;
                     }
                     <div class="@zeroClass" style="--progress-color: @GetProgressColor(percent);">
-                        <RadzenProgressBar Value="@Math.Round(percent, 2)" 
+                        <RadzenProgressBar Value="@Math.Round(percent, 2)"
                                            Style="@(percent == 0  ? "background-color: #ba0c2f;" : null)" />
                     </div>
                 </Template>
@@ -109,8 +109,8 @@ else
                     <Template Context="allocation">
                         @{
                             var percent = allocation.StarpowerAllocated.HasValue && allocation.StarpowerAllocated > 0
-                                            ? ((double)(allocation.StarpowerUsed ?? 0) / allocation.StarpowerAllocated.Value) * 100
-                                            : 0;
+                            ? ((double)(allocation.StarpowerUsed ?? 0) / allocation.StarpowerAllocated.Value) * 100
+                            : 0;
                             var zeroClass = percent == 0 ? "progress-zero" : null;
                         }
 
@@ -129,21 +129,18 @@ else
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; }
 
-    private List<OrderAllocation> orderAllocations = new();
-    private List<UserOrder> userOrders = new();
-    private List<TierSummary> tierSummaries = new();
-
-    private int teamId;
-    private string ownerName;
-
     private List<int> availableSeasons = new();
     private List<int> availableTurns = new();
+    private List<OrderAllocation> orderAllocations = new();
+    private List<TierSummary> tierSummaries = new();
+    private List<UserOrder> selectedUserOrders = new();
+    private List<UserOrder> userOrders = new();
 
     private int selectedSeason;
     private int selectedTurn;
-
+    private int teamId;
     private OrderAllocation? selectedTerritory;
-    private List<UserOrder> selectedUserOrders = new();
+    private string ownerName;
 
     protected override void OnInitialized()
     {
@@ -168,7 +165,7 @@ else
 
         return "#ba0c2f";
     }
-    
+
     private void LoadAllocations()
     {
         orderAllocations = OrderAllocationService

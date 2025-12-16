@@ -1,6 +1,4 @@
 ﻿using CFBROrders.SDK.Interfaces.Services;
-using CFBROrders.SDK.Models;
-using CFBROrders.SDK.Services;
 using CFBROrders.Web.Handlers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
