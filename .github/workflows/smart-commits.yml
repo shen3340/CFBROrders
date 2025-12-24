@@ -1,0 +1,103 @@
+﻿name: Kanban Smart Commits (Labels & Versioning)
+on:
+  push:
+    branches:
+      - master
+jobs:
+  update-issue-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Update issue labels and version
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          echo "Commit message: $COMMIT_MSG"
+          
+          ISSUE=$(echo "$COMMIT_MSG" | grep -o "#[0-9]\+" | head -n1 | tr -d '#')
+          if [ -z "$ISSUE" ]; then
+            echo "No issue number found. Exiting."
+            exit 0
+          fi
+          echo "Issue number: $ISSUE"
+          
+          VERSION=$(echo "$COMMIT_MSG" | grep -oP '#version:\K[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+          if [ -n "$VERSION" ]; then
+            echo "Version found: $VERSION"
+          else
+            echo "No version found in commit message"
+          fi
+          
+          if echo "$COMMIT_MSG" | grep -q "#backlog"; then
+            LABEL="Backlog"
+            CLOSE="false"
+          elif echo "$COMMIT_MSG" | grep -q "#in-progress"; then
+            LABEL="In Progress"
+            CLOSE="false"
+          elif echo "$COMMIT_MSG" | grep -q "#review"; then
+            LABEL="Review"
+            CLOSE="false"
+          elif echo "$COMMIT_MSG" | grep -q "#done"; then
+            LABEL="Done"
+            CLOSE="true"
+          else
+            LABEL=""
+            CLOSE="false"
+          fi
+          echo "Label to add: $LABEL"
+          
+          STATUS_LABELS='Backlog In-Progress Review Done'
+          for l in $STATUS_LABELS; do
+            curl -s -X DELETE -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/$REPO/issues/$ISSUE/labels/$(echo $l | sed 's/ /%20/g')" || true
+          done
+          
+          if [ -n "$LABEL" ]; then
+            curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$REPO/issues/$ISSUE/labels \
+              -d "{\"labels\":[\"$LABEL\"]}"
+            echo "Added label $LABEL to issue #$ISSUE"
+          fi
+          
+          if [ "$CLOSE" = "true" ]; then
+            curl -s -X PATCH -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$REPO/issues/$ISSUE \
+              -d "{\"state\":\"closed\"}"
+            
+            curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$REPO/issues/$ISSUE/comments \
+              -d "{\"body\":\"Automatically closed via commit: $COMMIT_SHA\"}"
+            echo "Closed issue #$ISSUE"
+          fi
+          
+          if [ -n "$VERSION" ]; then
+            echo "Creating GitHub release for version $VERSION"
+            
+            TAG_EXISTS=$(curl -s -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$REPO/git/refs/tags/v$VERSION | jq -r '.message // empty')
+            
+            if [ -z "$TAG_EXISTS" ]; then
+              curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+                -H "Accept: application/vnd.github.v3+json" \
+                https://api.github.com/repos/$REPO/git/refs \
+                -d "{\"ref\":\"refs/tags/v$VERSION\",\"sha\":\"$COMMIT_SHA\"}"
+              
+              RELEASE_BODY="Release v$VERSION\n\nRelated to issue #$ISSUE\n\nCommit: $COMMIT_SHA"
+              curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+                -H "Accept: application/vnd.github.v3+json" \
+                https://api.github.com/repos/$REPO/releases \
+                -d "{\"tag_name\":\"v$VERSION\",\"name\":\"v$VERSION\",\"body\":\"$RELEASE_BODY\",\"draft\":false,\"prerelease\":false}"
+              
+              echo "Created release v$VERSION"
+            else
+              echo "Tag v$VERSION already exists, skipping release creation"
+            fi
+          fi
