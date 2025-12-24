@@ -11,7 +11,7 @@
             <div class="container-fluid d-md-inline-flex align-items-center">
                 <NavLink class="navbar-brand" href="/">
                     <img class="img-fluid" width="40" height="40" alt="Rainbow Logo"
-                         src="images/logo-rainbow.png" />
+                         src="images/Branding Logos/logo-rainbow.svg" />
                 </NavLink>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -102,6 +102,7 @@
         if (firstRender && !string.IsNullOrWhiteSpace(CurrentUser.Color))
         {
             await JS.InvokeVoidAsync("setTeamColor", CurrentUser.Color, CurrentUser.ContrastColor);
+            await JS.InvokeVoidAsync("setSeasonalEffects", "Winter");
         }
     }
 
@@ -115,7 +116,7 @@
             }
 
             return $"background-color: {CurrentUser.Color};";
-    }
+        }
     }
 
 
